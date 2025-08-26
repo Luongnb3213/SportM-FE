@@ -2,7 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { bigShoulders } from "@/styles/fonts";  // import font ở đây
+import { bigShoulders } from "@/styles/fonts";
+import { cn } from "@/lib/utils";
+import {
+    NavigationMenu,
+    NavigationMenuList,
+    NavigationMenuItem,
+    NavigationMenuLink,
+} from "@/components/ui/navigation-menu";
+import {
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu, User } from "lucide-react";
 
 const nav = [
     { href: "/", label: "TRANG CHỦ" },
@@ -15,74 +29,109 @@ export default function Header() {
     const pathname = usePathname();
 
     return (
-        <header className={`w-full ${bigShoulders.className}`}>
-            <div className="flex items-center justify-between pt-12 px-12 text-black">
-                {/* Logo text */}
+        <header
+            className={cn(
+                "fixed inset-x-0 top-0 z-50",
+                "bg-transparent text-white",
+                bigShoulders.className
+            )}
+        >
+            <div className="flex items-center justify-between px-6 md:px-12 py-4">
+                {/* Logo */}
                 <Link
                     href="/"
-                    className="text-[32px] font-semibold leading-[150%] tracking-[-0.5px]"
+                    className="text-[28px] md:text-[32px] font-semibold tracking-[-0.5px]"
                 >
                     SPORTM
                 </Link>
 
-                {/* Center nav (desktop) */}
-                <nav className="hidden md:block">
-                    <ul className="flex items-center gap-8">
-                        {nav.map((item) => {
-                            const active =
-                                pathname === item.href ||
-                                (item.href !== "/" && pathname.startsWith(item.href));
-                            return (
-                                <li key={item.href}>
-                                    <Link
-                                        href={item.href}
-                                        className={[
-                                            "text-[20px] font-semibold leading-[150%] tracking-[-0.5px] uppercase",
-                                            "hover:opacity-80 transition-opacity",
-                                            active ? "underline underline-offset-4" : "opacity-90",
-                                        ].join(" ")}
-                                    >
-                                        {item.label}
-                                    </Link>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </nav>
+                {/* NAV – Desktop */}
+                <div className="hidden md:block">
+                    <NavigationMenu className="!bg-transparent">
+                        <NavigationMenuList className="gap-6">
+                            {nav.map((item) => {
+                                const active =
+                                    pathname === item.href ||
+                                    (item.href !== "/" && pathname.startsWith(item.href));
+                                return (
+                                    <NavigationMenuItem key={item.href}>
+                                        <NavigationMenuLink asChild>
+                                            <Link
+                                                href={item.href}
+                                                className={cn(
+                                                    "uppercase text-[18px] font-semibold",
+                                                    "transition-opacity hover:opacity-80",
+                                                    active ? "underline underline-offset-4" : "opacity-90"
+                                                )}
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        </NavigationMenuLink>
+                                    </NavigationMenuItem>
+                                );
+                            })}
+                        </NavigationMenuList>
+                    </NavigationMenu>
+                </div>
 
-                {/* Account (right) */}
-                <Link
-                    href="/account"
-                    className="flex items-center gap-2 text-[20px] font-semibold leading-[150%] tracking-[-0.5px] uppercase hover:opacity-80"
-                >
-                    <span aria-hidden>👤</span>
-                    <span>TÀI KHOẢN</span>
-                </Link>
-            </div>
+                {/* Account + Mobile menu */}
+                <div className="flex items-center gap-2">
+                    {/* Account desktop */}
+                    <Link
+                        href="/account"
+                        className="hidden md:flex items-center gap-2 uppercase text-[28px] font-semibold hover:opacity-80"
+                    >
+                        <User className="h-5 w-5" />
+                        <span>TÀI KHOẢN</span>
+                    </Link>
 
-            {/* Mobile nav (simple) */}
-            <nav className="md:hidden">
-                <ul className="flex overflow-x-auto no-scrollbar px-12 pt-4 gap-6 text-white">
-                    {nav.map((item) => {
-                        const active =
-                            pathname === item.href ||
-                            (item.href !== "/" && pathname.startsWith(item.href));
-                        return (
-                            <li key={item.href} className="shrink-0">
-                                <Link
-                                    href={item.href}
-                                    className={[
-                                        "text-[16px] font-semibold leading-[150%] tracking-[-0.5px] uppercase",
-                                        active ? "underline underline-offset-4" : "opacity-90",
-                                    ].join(" ")}
-                                >
-                                    {item.label}
+                    {/* Mobile sheet */}
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="md:hidden text-white hover:bg-white/10"
+                            >
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent
+                            side="right"
+                            className="w-[280px] sm:w-[320px] bg-black text-white border-none"
+                        >
+                            <div className="mt-8 flex flex-col gap-4">
+                                <Link href="/account" className="flex items-center gap-2 font-semibold uppercase">
+                                    <User className="h-5 w-5" />
+                                    TÀI KHOẢN
                                 </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </nav>
+                                <nav className="mt-6">
+                                    <ul className="flex flex-col gap-3">
+                                        {nav.map((item) => {
+                                            const active =
+                                                pathname === item.href ||
+                                                (item.href !== "/" && pathname.startsWith(item.href));
+                                            return (
+                                                <li key={item.href}>
+                                                    <Link
+                                                        href={item.href}
+                                                        className={cn(
+                                                            "uppercase text-[16px] font-semibold",
+                                                            active ? "underline underline-offset-4" : "opacity-90"
+                                                        )}
+                                                    >
+                                                        {item.label}
+                                                    </Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </nav>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+                </div>
+            </div>
         </header>
     );
 }
