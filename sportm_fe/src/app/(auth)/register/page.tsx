@@ -44,16 +44,14 @@ export default function RegisterPage() {
                             {/* Phone: fixed prefix +84 */}
                             <div className="space-y-1.5">
                                 <Label className="pl-4" htmlFor="phone">Số điện thoại</Label>
-                                <div className="flex items-center h-10 rounded-full border overflow-hidden">
-                                    <span className="px-3 text-sm text-muted-foreground whitespace-nowrap">+84</span>
-                                    {/* dùng input thường để tránh viền kép của <Input /> */}
-                                    <input
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">+84</span>
+                                    <Input
                                         id="phone"
                                         type="tel"
                                         placeholder="Nhập số điện thoại"
-                                        className="flex-1 h-full px-3 outline-none text-sm"
+                                        className="pl-12 h-10 rounded-full"
                                         inputMode="numeric"
-                                        pattern="[0-9]{8,11}"
                                     />
                                 </div>
                             </div>
@@ -121,7 +119,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* ------- BOTTOM FOOTER ------- */}
-                    <div className="mt-auto pb-4 flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="mt-auto flex items-center justify-between text-xs text-muted-foreground">
                         <span className={`${bigShoulders.className} text-lg text-[#4c8c52]`}>SPORTM</span>
                         <span>© {new Date().getFullYear()} SPORTM</span>
                     </div>

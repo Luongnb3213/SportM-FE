@@ -117,7 +117,7 @@ export default function LoginPage() {
                     </div>
 
                     {/* ------- STICKY BOTTOM (logo nhỏ + copyright) ------- */}
-                    <div className="mt-auto pb-4 flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="mt-auto  flex items-center justify-between text-xs text-muted-foreground">
                         <span className={`${bigShoulders.className} text-lg text-[#4c8c52]`}>SPORTM</span>
                         <span>© {new Date().getFullYear()} SPORTM</span>
                     </div>
