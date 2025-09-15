@@ -69,7 +69,7 @@ export default function Hero() {
             justify-start md:justify-center
             pt-52 sm:pt-52 md:pt-0
             text-white overflow-hidden
-          "
+            "
                 >
                     <div className="overflow-hidden" ref={emblaRef}>
                         <div className="flex">
@@ -91,7 +91,7 @@ export default function Hero() {
 
                                     {/* Title */}
                                     <h1 className="font-[Cambria] text-2xl sm:text-3xl md:text-5xl font-extrabold 
-               leading-snug md:leading-[150%] max-w-[90%] md:max-w-3xl ">
+                                    leading-snug md:leading-[150%] max-w-[90%] md:max-w-3xl ">
                                         {s.title}
                                     </h1>
 
@@ -177,7 +177,7 @@ export default function Hero() {
                 >
                     <span>Chuyên biệt cho sân thể thao</span>
                     <span>Tăng tỉ lệ lấp đầy sân trống</span>
-                    <span>Dễ sử dụng</span> 
+                    <span>Dễ sử dụng</span>
                     <span>Hơn 1200+ chủ sân đang dùng</span>
                 </div>
             </div>
