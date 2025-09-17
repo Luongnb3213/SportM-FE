@@ -108,7 +108,7 @@ export default function Header() {
                                                 <Link
                                                     href={item.href}
                                                     className={cn(
-                                                        "uppercase font-semibold",
+                                                        "uppercase font-semibold whitespace-nowrap",
                                                         "text-[16px] lg:text-[18px]",
                                                         "transition-opacity hover:opacity-80",
                                                         active ? "underline underline-offset-4" : "opacity-90"
@@ -216,7 +216,7 @@ export default function Header() {
                                                         <Link
                                                             href={item.href}
                                                             className={cn(
-                                                                "uppercase text-base font-semibold",
+                                                                "uppercase text-base font-semibold ",
                                                                 active
                                                                     ? "underline underline-offset-4"
                                                                     : "opacity-90"

@@ -1,93 +1,106 @@
-// src/components/ui/home/feature-section.tsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { bigShoulders } from "@/styles/fonts";
 import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
 
 type Props = {
-    index: string;                // "01"..."04"
-    eyebrow: string;              // PHẦN MỀM CHUYÊN BIỆT
-    title: string;
-    bullets: string[];
-    ctaLabel?: string;
-    href?: string;
-    imageSrc: string;
-    imageLeft?: boolean;
+    index: number;
+    label?: string;
+    title: string | React.ReactNode;
+    description: string;
+    image: { src: string; alt: string };
+    cta?: { label?: string; href: string };
+    reverse?: boolean;
+    bg?: string;
+    className?: string;
 };
 
 export default function FeatureSection({
     index,
-    eyebrow,
+    label = "PHẦN MỀM CHUYÊN BIỆT",
     title,
-    bullets,
-    ctaLabel = "xem thêm",
-    href = "#",
-    imageSrc,
-    imageLeft = false,
+    description,
+    image,
+    cta = { label: "xem thêm", href: "#" },
+    reverse = false,
+    bg = "/images/feature-bg.png",
+    className,
 }: Props) {
     return (
-        <section className="relative py-20 md:py-28">
-            <div className="absolute inset-0 bg-[#0f1f27]/50 -z-10" />
-
-            <div className="container mx-auto px-6 md:px-10">
+        <section
+            className={cn(
+                "relative isolate overflow-hidden text-white",
+                "flex items-center justify-center",
+                "min-h-[724px] py-12 md:py-20",
+                className
+            )}
+            style={{
+                backgroundImage: `url(${bg})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+            }}
+        >
+            <div className="mx-auto w-full max-w-[1180px] px-4 md:px-6">
                 <div
                     className={cn(
-                        "grid items-center gap-10 md:gap-16",
-                        "md:grid-cols-2"
+                        // layout md+: flex 2 khối, đảo hướng khi reverse
+                        "md:flex md:items-center md:gap-16 lg:gap-20",
+                        reverse ? "md:flex-row-reverse" : "md:flex-row"
                     )}
                 >
-                    {/* Text */}
-                    <div className={cn(imageLeft && "md:order-2")}>
-                        <div className="flex items-center gap-4">
-                            <span className="h-[2px] w-16 bg-yellow-400" />
-                            <span className="text-yellow-400 text-sm font-semibold uppercase tracking-wider">
-                                {eyebrow}
+                    {/* TEXT BLOCK */}
+                    <div className="md:flex-1 md:max-w-[620px] lg:max-w-[700px] md:px-2">
+                        <div className="mb-6 flex items-center gap-4">
+                            {/* thanh vàng dài hơn  */}
+                            <span className="h-[3px] w-28 md:w-36 bg-[#FFD400]" />
+                            <span className="text-[#FFD400] text-base md:text-lg lg:text-[20px] leading-[150%] font-bold uppercase tracking-tight">
+                                {label}
                             </span>
                         </div>
 
-                        <div className="mt-4 flex items-start gap-6">
-                            <span
-                                className={cn(
-                                    "text-6xl md:text-7xl text-yellow-400 leading-none",
-                                    bigShoulders.className
-                                )}
-                            >
-                                {index}
-                            </span>
+                        {/* Tiêu đề riêng hàng */}
 
-                            <div>
-                                <h3 className="text-white text-3xl md:text-4xl font-bold leading-tight">
-                                    {title}
-                                </h3>
-                                <div className="mt-3 space-y-2 text-white/80">
-                                    {bullets.map((b, i) => (
-                                        <p key={i}>{b}</p>
-                                    ))}
+
+                        {/* Hàng nội dung gồm số + đoạn mô tả */}
+                        <div className="grid grid-cols-[auto_1fr] gap-6 md:gap-8 items-center">
+
+                            {/* SỐ THỨ TỰ – căn giữa theo CHIỀU DỌC */}
+                            <div className="row-span-2 flex items-center">
+                                <div className="text-[#FFD400] text-[64px] md:text-[88px] font-extrabold leading-[0.9]">
+                                    {String(index).padStart(2, "0")}
                                 </div>
+                            </div>
+                            <h2 className="mb-6 text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight">
+                                {title}
+                            </h2>
+                            {/* MÔ TẢ – hỗ trợ xuống dòng bằng \n */}
+                            <div>
+                                <p className="mb-1 max-w-[560px] text-[20px] md:text-[22px] leading-8 text-gray-200 whitespace-pre-line">
+                                    {description}
+                                </p>
 
                                 <Link
-                                    href={href}
-                                    className="mt-3 inline-flex items-center gap-2 text-yellow-300 hover:text-yellow-200"
+                                    href={cta.href}
+                                    className="group inline-flex items-center gap-1 text-[#FFD400] font-semibold hover:underline"
                                 >
-                                    {ctaLabel} <span aria-hidden>→</span>
+                                    {cta.label}
+                                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </Link>
-                            </div>
-                        </div>
+                            </div>                    </div>
                     </div>
 
-                    {/* Image */}
-                    <div className={cn("md:justify-self-end", imageLeft && "md:order-1 md:justify-self-start")}>
-                        <div className="relative w-full max-w-[420px] aspect-[3/4] rounded-md overflow-hidden shadow-2xl">
-                            <Image
-                                src={imageSrc}
-                                alt=""
-                                fill
-                                className="object-cover"
-                                sizes="(min-width: 768px) 420px, 80vw"
-                            />
-                        </div>
+                    {/* IMAGE BLOCK – cố định width, không co lại */}
+                    <div className="relative mx-auto mt-10 md:mt-0 w-[320px] sm:w-[360px] md:w-[420px] lg:w-[460px] aspect-[2/3] shrink-0">
+                        <Image
+                            src={image.src}
+                            alt={image.alt}
+                            fill
+                            className="object-cover rounded-lg shadow-lg"
+                            sizes="(min-width: 1024px) 460px, (min-width: 768px) 420px, 360px"
+                            priority={index === 1}
+                        />
                     </div>
                 </div>
             </div>
