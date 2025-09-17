@@ -11,14 +11,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const store = await cookies();
     const raw = store.get("user")?.value;
     let user: User | null = null;
-    try { user = raw ? (JSON.parse(decodeURIComponent(raw)) as User) : null; } catch { }
+    try {
+        user = raw ? (JSON.parse(decodeURIComponent(raw)) as User) : null;
+    } catch { }
 
     return (
         <html
             lang="vi"
             className={`${geistSans.variable} ${geistMono.variable} ${bigShoulders.variable} ${openSans.variable}`}
         >
-            <body className="min-h-screen font-sans">
+            <body className={`min-h-screen ${bigShoulders.className}`}>
                 <ReduxProvider>
                     <ClientHydrator user={user} />
                     {children}
