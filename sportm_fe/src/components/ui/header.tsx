@@ -9,10 +9,7 @@ import { logoutClient } from "@/lib/redux/features/auth/authSlice";
 import { bigShoulders } from "@/styles/fonts";
 import { cn } from "@/lib/utils";
 import {
-    NavigationMenu,
-    NavigationMenuList,
-    NavigationMenuItem,
-    NavigationMenuLink,
+    NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -31,7 +28,6 @@ export default function Header() {
     const dispatch = useDispatch();
     const { isAuthenticated, user } = useSelector((s: RootState) => s.auth);
 
-    // Hide on scroll down / show on scroll up
     const [hidden, setHidden] = useState(false);
     const [elevated, setElevated] = useState(false);
     const lastYRef = useRef(0);
@@ -60,11 +56,8 @@ export default function Header() {
     }, []);
 
     async function handleLogout() {
-        try {
-            await fetch("/api/auth/logout", { method: "POST" });
-        } catch {
-            // ignore
-        } finally {
+        try { await fetch("/api/auth/logout", { method: "POST" }); } catch { }
+        finally {
             dispatch(logoutClient());
             router.push("/login");
         }
@@ -75,26 +68,25 @@ export default function Header() {
             className={cn(
                 "fixed inset-x-0 top-0 z-50 transition-transform duration-300 will-change-transform",
                 hidden ? "-translate-y-full" : "translate-y-0",
-                elevated ? "bg-transparent border-b border-white/10" : "bg-transparent",
-                "text-white",
+                elevated ? "border-b border-white/10" : "",
+                // mobile-only: bg trong suốt + chữ trắng
+                "bg-transparent text-white",
                 bigShoulders.className
             )}
         >
-            {/* container */}
-            <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
-                {/* Grid 3 cột: trái | giữa | phải */}
-                <div className="grid grid-cols-3 items-center gap-3 py-3 md:py-4">
-                    {/* Logo (trái) */}
-                    <div className="justify-self-start">
-                        <Link
-                            href="/"
-                            className="text-[24px] sm:text-[26px] md:text-[32px] font-semibold tracking-[-0.5px]"
-                        >
-                            SPORTM
-                        </Link>
-                    </div>
+            <div className="mx-auto w-full px-3 sm:px-4 md:px-8">
+                {/* MOBILE: flex row; DESKTOP: grid 3 cột (nguyên bản) */}
+                <div className="flex h-14 items-center justify-between md:grid md:h-auto md:grid-cols-3 md:gap-3 md:py-4">
+                    {/* Logo — mobile nhỏ hơn 1 chút, desktop giữ nguyên (`md:`) */}
+                    <Link
+                        href="/"
+                        className="text-[20px] sm:text-[22px] md:text-[32px] font-semibold tracking-[-0.5px]"
+                        aria-label="SPORTM"
+                    >
+                        SPORTM
+                    </Link>
 
-                    {/* NAV – giữa (ẩn mobile) */}
+                    {/* NAV giữa — ẨN mobile, GIỮ desktop */}
                     <div className="hidden md:flex justify-center">
                         <NavigationMenu className="!bg-transparent">
                             <NavigationMenuList className="gap-6 lg:gap-10">
@@ -124,14 +116,13 @@ export default function Header() {
                         </NavigationMenu>
                     </div>
 
-                    {/* Account / Auth + Mobile trigger (phải) */}
-                    <div className="flex items-center gap-2 justify-self-end">
-                        {/* Desktop */}
+                    {/* Account — ẨN mobile, GIỮ desktop */}
+                    <div className="hidden md:flex items-center justify-end gap-4 lg:gap-6">
                         {isAuthenticated && user ? (
-                            <div className="hidden md:flex items-center gap-4 lg:gap-6">
+                            <>
                                 <Link
                                     href="/account"
-                                    className="flex items-center gap-2 uppercase font-semibold hover:opacity-80 text-[22px] lg:text-[28px]"
+                                    className="flex items-center gap-2 uppercase font-semibold hover:opacity-80 text-[22px] lg:text-[22px]"
                                 >
                                     <User className="h-5 w-5" />
                                     <span className="hidden lg:inline">{user.fullName ?? "TÀI KHOẢN"}</span>
@@ -139,55 +130,53 @@ export default function Header() {
                                 </Link>
                                 <Button
                                     variant="ghost"
-                                    className="uppercase font-semibold hover:underline text-[22px] lg:text-[28px]"
+                                    className="uppercase font-semibold hover:underline text-[22px] lg:text-[22px]"
                                     onClick={handleLogout}
                                 >
                                     <LogOut className="mr-2 h-5 w-5" />
                                     Đăng xuất
                                 </Button>
-                            </div>
+                            </>
                         ) : (
-                            <div className="hidden md:flex items-center gap-4 lg:gap-6 uppercase font-semibold text-[22px] lg:text-[28px]">
-                                <Link href="/login" className="hover:underline">
-                                    Đăng nhập
-                                </Link>
-                                <Link href="/register" className="hover:underline">
-                                    Đăng ký
-                                </Link>
+                            <div className="flex items-center gap-4 lg:gap-6 uppercase font-semibold text-[22px] lg:text-[28px]">
+                                <Link href="/login" className="hover:underline">Đăng nhập</Link>
+                                <Link href="/register" className="hover:underline">Đăng ký</Link>
                             </div>
                         )}
+                    </div>
 
-                        {/* Mobile trigger */}
+                    {/* Mobile burger — CHỈ mobile */}
+                    <div className="md:hidden">
                         <Sheet>
                             <SheetTrigger asChild>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="md:hidden text-white hover:bg-white/10"
-                                    aria-label="Open menu"
+                                    className="text-white hover:bg-white/10"
+                                    aria-label="Mở menu"
                                 >
                                     <Menu className="h-7 w-7" />
                                 </Button>
                             </SheetTrigger>
 
-                            {/* Mobile sheet */}
                             <SheetContent
                                 side="right"
-                                className="w-[280px] sm:w-[320px] bg-black text-white border-none"
+                                className="w-[88vw] max-w-[360px] bg-black text-white border-none px-5"
                             >
                                 <div className="mt-8 flex flex-col gap-5">
+                                    {/* Auth block trong Sheet (mobile) */}
                                     {isAuthenticated && user ? (
                                         <>
                                             <Link
                                                 href="/account"
-                                                className="flex items-center gap-2 font-semibold uppercase text-lg"
+                                                className="flex items-center gap-2 font-semibold uppercase text-base"
                                             >
                                                 <User className="h-5 w-5" />
-                                                {user.fullName ?? "TÀI KHOẢN"}
+                                                <span className="truncate">{user.fullName ?? "TÀI KHOẢN"}</span>
                                             </Link>
                                             <Button
                                                 variant="ghost"
-                                                className="w-fit uppercase font-semibold hover:underline"
+                                                className="w-fit uppercase font-semibold hover:underline text-sm"
                                                 onClick={handleLogout}
                                             >
                                                 <LogOut className="mr-2 h-4 w-4" />
@@ -195,18 +184,16 @@ export default function Header() {
                                             </Button>
                                         </>
                                     ) : (
-                                        <div className="flex gap-4 font-semibold uppercase text-lg">
-                                            <Link href="/login" className="hover:underline">
-                                                Đăng nhập
-                                            </Link>
-                                            <Link href="/register" className="hover:underline">
-                                                Đăng ký
-                                            </Link>
+                                        <div className="flex gap-4 font-semibold uppercase text-base">
+                                            <Link href="/login" className="hover:underline">Đăng nhập</Link>
+                                            <span className="opacity-50">•</span>
+                                            <Link href="/register" className="hover:underline">Đăng ký</Link>
                                         </div>
                                     )}
 
+                                    {/* Nav list trong Sheet */}
                                     <nav className="mt-2">
-                                        <ul className="flex flex-col gap-3">
+                                        <ul className="flex flex-col">
                                             {nav.map((item) => {
                                                 const active =
                                                     pathname === item.href ||
@@ -216,10 +203,8 @@ export default function Header() {
                                                         <Link
                                                             href={item.href}
                                                             className={cn(
-                                                                "uppercase text-base font-semibold ",
-                                                                active
-                                                                    ? "underline underline-offset-4"
-                                                                    : "opacity-90"
+                                                                "block py-2 uppercase text-[15px] font-semibold",
+                                                                active ? "underline underline-offset-4" : "opacity-90"
                                                             )}
                                                         >
                                                             {item.label}
