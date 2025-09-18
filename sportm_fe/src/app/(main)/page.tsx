@@ -21,10 +21,10 @@ Ngoài ra có thể xem được khách nào là khách lẻ, khách nào cố �
         index={2}
         title={
           <>
-            Báo Cáo Thống Kê <br /> Doanh Thu
+            Thống Kê Doanh Thu
           </>
         }
-        description={`Tính năng bán hàng của phần mềm quản lý ALOBO cho phép chủ sân dễ dàng bán các dịch vụ như nước uống, vợt, bóng, cầu, đồ ăn… một cách nhanh chóng và hiệu quả.
+        description={`Tính năng bán hàng của phần mềm quản lý SportM cho phép chủ sân dễ dàng bán các dịch vụ như nước uống, vợt, bóng, cầu, đồ ăn… một cách nhanh chóng và hiệu quả.
 Giúp theo dõi doanh thu từ việc bán dịch vụ.`}
         image={{ src: "/images/tennis-1.png", alt: "Tennis court" }}
         cta={{ href: "#", label: "xem thêm" }}
@@ -35,7 +35,7 @@ Giúp theo dõi doanh thu từ việc bán dịch vụ.`}
       <FeatureSection
         index={3}
         title="Quản Lý Lịch Đặt"
-        description={`ALOBO cung cấp đầy đủ tính năng quản lý và tạo lịch đặt theo ngày, linh hoạt, cố định theo tháng.
+        description={`SportM cung cấp đầy đủ tính năng quản lý và tạo lịch đặt theo ngày, linh hoạt, cố định theo tháng.
 Đồng thời bạn có thể theo dõi và duyệt đơn đặt lịch từ khách hàng, giúp bạn tổ chức công việc một cách thuận tiện và dễ dàng.`}
         image={{ src: "/images/tennis-1.png", alt: "Tennis court" }}
         cta={{ href: "#", label: "xem thêm" }}
@@ -45,7 +45,7 @@ Giúp theo dõi doanh thu từ việc bán dịch vụ.`}
       <FeatureSection
         index={4}
         title="Quảng Cáo Đa Nền Tảng"
-        description={`Tính năng bán hàng của phần mềm quản lý ALOBO cho phép chủ sân dễ dàng bán các dịch vụ như nước uống, vợt, bóng, cầu, đồ ăn… một cách nhanh chóng và hiệu quả.
+        description={`Tính năng bán hàng của phần mềm quản lý SportM cho phép chủ sân dễ dàng bán các dịch vụ như nước uống, vợt, bóng, cầu, đồ ăn… một cách nhanh chóng và hiệu quả.
 Giúp theo dõi doanh thu từ việc bán dịch vụ.`}
         image={{ src: "/images/tennis-1.png", alt: "Tennis court" }}
         cta={{ href: "#", label: "xem thêm" }}
