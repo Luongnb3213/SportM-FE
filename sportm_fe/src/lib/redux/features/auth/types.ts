@@ -1,22 +1,24 @@
 export type User = {
-    fullName: string;
+    id: string;
     email: string;
-    phoneNumber: string | null;
-    avatarUrl: string | null;
-    role: "CLIENT" | "ADMIN" | string;
-    bankAccount: string | null;
-    documentUrl: string | null;
-    bio: string | null;
+    fullName: string;
+    phone?: string;
 };
 
-export type LoginPayload = { email: string; password: string; remember?: boolean };
+export type LoginPayload = {
+    email: string;
+    password: string;
+    remember?: boolean;
+};
 
 export type LoginResponse = {
-    status: "success";
-    statusCode: number;
-    data: {
-        message: string;
-        access: string; 
-        user: User;
-    };
+    data: { user: User };
+};
+
+/* Thêm cho đăng ký */
+export type SignupPayload = {
+    email: string;
+    fullName: string;
+    phone: string;
+    password: string;
 };
