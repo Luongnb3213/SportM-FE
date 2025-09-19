@@ -173,13 +173,15 @@ export default function Hero() {
 
                 {/* ==== BOTTOM CAPTION (desktop) ==== */}
                 <div
-                    className={`${bigShoulders.className} absolute bottom-4 inset-x-0 hidden md:grid grid-cols-4 gap-6 text-center text-white/90 text-bg uppercase tracking-wide text-[20px]`}
+                    className={`${bigShoulders.className} absolute bottom-4 inset-x-0 hidden md:flex justify-around text-center text-white/90 uppercase tracking-wide text-[20px]`}
                 >
                     <span>Chuyên biệt cho sân thể thao</span>
                     <span>Tăng tỉ lệ lấp đầy sân trống</span>
                     <span>Dễ sử dụng</span>
+                    <span>Hiệu quả cao</span>
                     <span>Hơn 1200+ chủ sân đang dùng</span>
                 </div>
+
             </div>
         </section>
     );

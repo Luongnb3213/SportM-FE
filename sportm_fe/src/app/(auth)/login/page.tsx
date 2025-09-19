@@ -68,11 +68,13 @@ export default function LoginPage() {
                         <h1
                             className={`text-center text-[48px] md:text-[64px] font-semibold leading-[150%] tracking-[-0.5px] text-[#669250] ${bigShoulders.className}`}
                         >
+                            <Link href="/" className="block">
                             SPORTM
+                            </Link>
                         </h1>
 
                         {/* Tiêu đề */}
-                        <h2 className="mb-6 text-center text-[18px] md:text-[20px] font-bold leading-[28px]">
+                        <h2 className={`mb-6 text-center text-[18px] md:text-[20px] font-bold leading-[28px] ${openSans.className}`}>
                             Đăng nhập
                         </h2>
 

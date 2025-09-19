@@ -1,8 +1,11 @@
+export type Role = "ADMIN" | "OWNER" | "CLIENT";
+
 export type User = {
     id: string;
     email: string;
     fullName: string;
     phone?: string;
+    role: Role;
 };
 
 export type LoginPayload = {
