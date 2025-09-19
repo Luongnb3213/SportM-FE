@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/lib/redux/store";
-import { signup } from "@/lib/redux/features/auth/authSlice";
+import { clearAuthError, signup } from "@/lib/redux/features/auth/authSlice";
 import AuthShell from "@/components/auth/AuthShell";
 import EmailOtpForm from "@/components/auth/EmailOtpForm";
 import VerifyOtpBlock from "@/components/auth/VerifyOtpBlock";
@@ -15,6 +16,18 @@ import { Separator } from "@/components/ui/separator";
 import { bigShoulders, openSans } from "@/styles/fonts";
 import { Lock, User, Phone } from "lucide-react";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+function BackToLogin() {
+    return (
+        <p className="text-sm text-center mt-2">
+            Đã có tài khoản?{" "}
+            <Link href="/login" className="underline text-[#5f8f53] hover:text-[#4f7d44]">
+                Đăng nhập
+            </Link>
+        </p>
+    );
+}
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -27,6 +40,11 @@ export default function RegisterPage() {
         if (isAuthenticated) router.push("/");
     }, [isAuthenticated, router]);
 
+    useEffect(() => {
+        dispatch(clearAuthError());
+        return () => { dispatch(clearAuthError()); };
+    }, [dispatch, step]);
+
     // ---------- Step email ----------
     if (step === "email") {
         return (
@@ -35,6 +53,7 @@ export default function RegisterPage() {
                 description={<>Chúng tôi sẽ gửi mã OTP qua email của bạn. OTP có hiệu lực trong vòng 15 phút.</>}
             >
                 <EmailOtpForm nextHref="/register?step=otp" />
+                <BackToLogin />
             </AuthShell>
         );
     }
@@ -44,6 +63,7 @@ export default function RegisterPage() {
         return (
             <AuthShell title="Nhập mã OTP">
                 <VerifyOtpBlock nextHref="/register?step=form" />
+                <BackToLogin />
             </AuthShell>
         );
     }
@@ -58,12 +78,9 @@ export default function RegisterPage() {
             <div className="flex-1 basis-[35%] relative flex items-stretch p-6 md:p-12">
                 <div className="w-full max-w-[360px] mx-auto flex flex-col h-full">
                     <div className="pt-10 md:pt-16 lg:pt-20 xl:pt-24">
-                        <button
-                            onClick={() => router.push("/login")}
-                            className={`text-[64px] font-semibold leading-[150%] tracking-[-0.5px] text-[#669250] text-center ${bigShoulders.className}`}
-                        >
-                            SPORTM
-                        </button>
+                        <h1 className={`text-[64px] font-semibold text-[#669250] text-center ${bigShoulders.className}`}>
+                            <Link href="/">SPORTM</Link>
+                        </h1>
                         <h2 className="text-[20px] font-bold leading-[28px] text-center mb-6">Đăng ký</h2>
 
                         {!otpVerified && (
@@ -81,7 +98,8 @@ export default function RegisterPage() {
                             onSubmit={async (data) => {
                                 const r = await dispatch(signup({ ...data, email: otpEmail ?? "" }));
                                 if (signup.fulfilled.match(r)) {
-                                    router.push("/login"); // tuỳ ý: /login hoặc /
+                                    toast.success("Đăng ký thành công! Bạn có thể đăng nhập ngay.");
+                                    router.push("/login");
                                 }
                             }}
                         />
@@ -129,7 +147,9 @@ function SignupForm({
 
     return (
         <form className={`space-y-4 ${openSans.className}`} onSubmit={handleSubmit}>
-            <p className="text-sm text-muted-foreground text-center">Email đã xác thực: <b>{email || "—"}</b></p>
+            <p className="text-sm text-muted-foreground text-center">
+                Email đã xác thực: <b>{email || "—"}</b>
+            </p>
 
             <div className="space-y-1.5">
                 <Label className="pl-4" htmlFor="name">Tên đầy đủ</Label>
@@ -167,12 +187,16 @@ function SignupForm({
                 </div>
             </div>
 
-            {(localError || error) && <p className="text-center text-sm text-red-600">{localError || error}</p>}
+            {(localError || error) && (
+                <p className="text-center text-sm text-red-600">{localError || error}</p>
+            )}
 
             <Button type="submit" disabled={disabled || loading}
                 className="w-full h-10 rounded-full bg-[#5f8f53] hover:bg-[#4f7d44]">
                 {loading ? "Đang đăng ký..." : "Đăng ký"}
             </Button>
+
+            <BackToLogin />
 
             <Separator className="my-4" />
         </form>

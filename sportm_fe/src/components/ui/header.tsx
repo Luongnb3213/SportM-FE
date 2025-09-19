@@ -15,12 +15,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, User, LogOut } from "lucide-react";
 
-const nav = [
-    { href: "/", label: "TRANG CHỦ" },
-    { href: "/users", label: "QUẢN LÍ NGƯỜI DÙNG" },
-    { href: "/fields", label: "QUẢN LÍ SÂN" },
-    { href: "/services", label: "DỊCH VỤ" },
-];
+
 
 export default function Header() {
     const pathname = usePathname();
@@ -33,6 +28,30 @@ export default function Header() {
     const lastYRef = useRef(0);
     const tickingRef = useRef(false);
 
+    const adminNav = [
+        { href: "/", label: "Trang chủ" },
+        { href: "/manage/users", label: "Tài khoản" },
+        { href: "/manage/ads", label: "Quảng cáo (tất cả)" },
+        { href: "/manage/packages", label: "Gói đăng ký" },
+    ];
+
+    const ownerNav = [
+        { href: "/", label: "Trang chủ" },
+        { href: "/manage/fields", label: "Quản lí sân" },
+        { href: "/manage/ads", label: "Quảng cáo của tôi" },
+        { href: "/manage/reports", label: "Thống kê" },
+    ];
+
+    const clientNav = [
+        { href: "/", label: "TRANG CHỦ" },
+        { href: "/services", label: "DỊCH VỤ" },
+        { href: "/pricing", label: "BẢNG GIÁ" },
+        { href: "/about", label: "VỀ CHÚNG TÔI" },
+    ];
+
+    let nav = clientNav;
+    if (user?.role === "ADMIN") nav = adminNav;
+    if (user?.role === "OWNER") nav = ownerNav;
     useEffect(() => {
         const onScroll = () => {
             const y = window.scrollY || 0;
@@ -66,21 +85,22 @@ export default function Header() {
     return (
         <header
             className={cn(
-                "fixed inset-x-0 top-0 z-50 transition-transform duration-300 will-change-transform",
+                "fixed inset-x-0 top-0 z-50 transition-transfor m duration-300 will-change-transform ",
                 hidden ? "-translate-y-full" : "translate-y-0",
                 elevated ? "border-b border-white/10" : "",
                 // mobile-only: bg trong suốt + chữ trắng
                 "bg-transparent text-white",
+                "leading-[150%] font-semibold",
                 bigShoulders.className
             )}
         >
             <div className="mx-auto w-full px-3 sm:px-4 md:px-8">
                 {/* MOBILE: flex row; DESKTOP: grid 3 cột (nguyên bản) */}
-                <div className="flex h-14 items-center justify-between md:grid md:h-auto md:grid-cols-3 md:gap-3 md:py-4">
+                <div className="flex h-14 items-center justify-between md:grid md:h-auto md:grid-cols-3 md:gap-3 md:py-4 ">
                     {/* Logo — mobile nhỏ hơn 1 chút, desktop giữ nguyên (`md:`) */}
                     <Link
                         href="/"
-                        className="text-[20px] sm:text-[22px] md:text-[32px] font-semibold tracking-[-0.5px]"
+                        className="text-[20px] sm:text-[22px] md:text-[32px] font-semibold tracking-[-0.5px] leading-[150%] "
                         aria-label="SPORTM"
                     >
                         SPORTM
@@ -102,7 +122,7 @@ export default function Header() {
                                                     className={cn(
                                                         "uppercase font-semibold whitespace-nowrap",
                                                         "text-[16px] lg:text-[18px]",
-                                                        "transition-opacity hover:opacity-80",
+                                                        "transition-opacity hover:opacity-80 leading-[150%] font-semibold",
                                                         active ? "underline underline-offset-4" : "opacity-90"
                                                     )}
                                                 >
