@@ -3,8 +3,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { LoginPayload, LoginResponse, User } from "./types";
-import { api, readJson, getErrorMessage } from "./utils";
-import { json } from "stream/consumers";
+import { readJson, getErrorMessage } from "./utils";
+
 
 // ================== State ==================
 type AuthState = {

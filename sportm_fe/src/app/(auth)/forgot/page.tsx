@@ -10,7 +10,6 @@ import AuthShell from "@/components/auth/AuthShell";
 import EmailOtpForm from "@/components/auth/EmailOtpForm";
 import VerifyOtpBlock from "@/components/auth/VerifyOtpBlock";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
