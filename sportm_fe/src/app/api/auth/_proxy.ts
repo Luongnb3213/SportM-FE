@@ -1,10 +1,10 @@
 // app/api/auth/_proxy.ts
 import { NextResponse } from "next/server";
 
-const BE = process.env.BE_ORIGIN ?? "https://sportmbe.onrender.com";
+const BE = process.env.NEXT_PUBLIC_API_URL ?? "https://sportmbe.onrender.com";
 
 export async function proxyAuth(path: string, req: Request) {
-    const body = req.method === "GET" ? undefined : await req.text(); // giữ nguyên body
+    const body = req.method === "GET" ? undefined : await req.text(); 
     const res = await fetch(`${BE}${path}`, {
         method: req.method,
         headers: { "Content-Type": "application/json" },

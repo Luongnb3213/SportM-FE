@@ -3,7 +3,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { LoginPayload, LoginResponse, User } from "./types";
-import { api, readJson, getErrorMessage } from "./utils";
+import { readJson, getErrorMessage } from "./utils";
+
 
 // ================== State ==================
 type AuthState = {
@@ -64,15 +65,26 @@ export const sendOtp = createAsyncThunk<
     { rejectValue: string }
 >("auth/sendOtp", async (email, { rejectWithValue }) => {
     try {
-        const res = await fetch("/api/auth/send-otp", {
+        const res = await fetch("/api/auth/send-otp-signup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email }),
         });
+
         if (!res.ok) {
-            const data = await readJson<unknown>(res);
+
+            const data = await readJson<{
+                status?: string;
+                statusCode?: number;
+                data?: string;
+            }>(res);
+
+            if (data?.statusCode === 409 && data?.data?.includes("User")) {
+                return rejectWithValue("Email đã tồn tại");
+            }
             return rejectWithValue(getErrorMessage(data, "Gửi OTP thất bại"));
         }
+
         return { email };
     } catch (err: unknown) {
         if (err instanceof Error) {
@@ -131,6 +143,57 @@ export const signup = createAsyncThunk<
             return rejectWithValue(err.message);
         }
         return rejectWithValue("Network error");
+    }
+});
+
+export const sendOtpForgot = createAsyncThunk<
+    { email: string },
+    string,
+    { rejectValue: string }
+>("auth/sendOtpForgot", async (email, { rejectWithValue }) => {
+    try {
+        const res = await fetch("/api/auth/send-otp-forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+        });
+
+        if (!res.ok) {
+            const data = await readJson<{ statusCode?: number; data?: string }>(res);
+            if (data?.statusCode === 404 || (data?.data ?? "").toLowerCase().includes("not found")) {
+                return rejectWithValue("Email không tồn tại");
+            }
+            return rejectWithValue(getErrorMessage(data, "Gửi OTP thất bại"));
+        }
+
+        return { email };
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Network error";
+        return rejectWithValue(msg);
+    }
+});
+
+// Đặt lại mật khẩu (sau khi verify OTP)
+export const resetPassword = createAsyncThunk<
+    { ok: true },
+    { email: string; newPassword: string },
+    { rejectValue: string }
+>("auth/resetPassword", async ({ email, newPassword }, { rejectWithValue }) => {
+    try {
+        const res = await fetch("/api/auth/update-password", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, newPassword }),
+        });
+
+        if (!res.ok) {
+            const data = await readJson<{ statusCode?: number; data?: string }>(res);
+            return rejectWithValue(getErrorMessage(data, "Đặt lại mật khẩu thất bại"));
+        }
+        return { ok: true };
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Network error";
+        return rejectWithValue(msg);
     }
 });
 
@@ -232,6 +295,37 @@ const authSlice = createSlice({
             .addCase(signup.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload ?? "Đăng ký thất bại";
+            });
+        builder
+            .addCase(sendOtpForgot.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.otpSent = false;
+            })
+            .addCase(sendOtpForgot.fulfilled, (state, action) => {
+                state.loading = false;
+                state.otpSent = true;
+                state.otpEmail = action.payload.email;
+            })
+            .addCase(sendOtpForgot.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload ?? "Gửi OTP thất bại";
+            });
+        builder
+            .addCase(resetPassword.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(resetPassword.fulfilled, (state) => {
+                state.loading = false;
+                // clear OTP flow sau khi reset thành công
+                state.otpEmail = null;
+                state.otpSent = false;
+                state.otpVerified = false;
+            })
+            .addCase(resetPassword.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload ?? "Đặt lại mật khẩu thất bại";
             });
     },
 });

@@ -1,23 +1,32 @@
+// components/auth/VerifyOtpBlock.tsx
 "use client";
 
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/lib/redux/store";
-import { verifyOtp, sendOtp, clearAuthError } from "@/lib/redux/features/auth/authSlice";
+import { verifyOtp, sendOtp, sendOtpForgot, clearAuthError } from "@/lib/redux/features/auth/authSlice";
 import OtpInput from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 type Props = {
-    nextHref: string; // đi đâu sau verify thành công (VD: /register?step=form hoặc /auth/reset-password)
-    emailOverride?: string; // nếu muốn truyền email khác thay vì lấy từ store
+    nextHref: string;              // điều hướng sau khi verify ok
+    emailOverride?: string;        // ép email khác (nếu cần)
+    mode?: "default" | "forgot";   // default = đăng ký/đăng nhập ; forgot = quên mật khẩu
+    onSuccess?: () => void;        // optional: callback (VD bắn toast)
 };
 
-export default function VerifyOtpBlock({ nextHref, emailOverride }: Props) {
+export default function VerifyOtpBlock({
+    nextHref,
+    emailOverride,
+    mode = "default",
+    onSuccess,
+}: Props) {
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
     const { loading, error, otpEmail } = useSelector((s: RootState) => s.auth);
     const email = useMemo(() => emailOverride || otpEmail || "", [emailOverride, otpEmail]);
+
     const [code, setCode] = useState("");
 
     function maskEmail(e: string) {
@@ -32,12 +41,20 @@ export default function VerifyOtpBlock({ nextHref, emailOverride }: Props) {
         if (code.length !== 6 || !email) return;
         dispatch(clearAuthError());
         const r = await dispatch(verifyOtp({ email, code }));
-        if (verifyOtp.fulfilled.match(r)) router.push(nextHref);
+        if (verifyOtp.fulfilled.match(r)) {
+            onSuccess?.();            // 👈 bắn toast nếu truyền vào
+            router.push(nextHref);
+        }
     }
 
     async function onResend() {
         if (!email) return;
-        await dispatch(sendOtp(email));
+        // 👇 resend đúng thunk theo mode
+        if (mode === "forgot") {
+            await dispatch(sendOtpForgot(email));
+        } else {
+            await dispatch(sendOtp(email));
+        }
     }
 
     return (

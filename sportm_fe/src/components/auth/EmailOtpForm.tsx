@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/lib/redux/store";
-import { sendOtp, clearAuthError } from "@/lib/redux/features/auth/authSlice";
+import { sendOtp, clearAuthError, sendOtpForgot } from "@/lib/redux/features/auth/authSlice";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,18 @@ import { useRouter } from "next/navigation";
 type Props = {
     title?: string;
     description?: React.ReactNode;
-    nextHref: string; // đi đâu sau khi send OTP thành công
+    nextHref: string;                // điều hướng sau khi gửi OTP ok
+    mode?: "default" | "forgot";     // ✅ thêm: default = dùng sendOtp, forgot = sendOtpForgot
+    buttonText?: string;             // (optional) custom label nút
 };
 
-export default function EmailOtpForm({ title = "", description, nextHref }: Props) {
+export default function EmailOtpForm({
+    title = "",
+    description,
+    nextHref,
+    mode = "default",
+    buttonText,
+}: Props) {
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
     const { loading, error } = useSelector((s: RootState) => s.auth);
@@ -35,8 +43,11 @@ export default function EmailOtpForm({ title = "", description, nextHref }: Prop
         setLocalError(null);
         dispatch(clearAuthError());
 
-        const res = await dispatch(sendOtp(email));
-        if (sendOtp.fulfilled.match(res)) {
+        // ✅ chọn thunk theo mode
+        const action = mode === "forgot" ? sendOtpForgot : sendOtp;
+
+        const res = await dispatch(action(email));
+        if (action.fulfilled.match(res)) {
             router.push(nextHref);
         }
     }
@@ -51,9 +62,13 @@ export default function EmailOtpForm({ title = "", description, nextHref }: Prop
                 <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
                     <Input
-                        id="email" type="email" placeholder="Nhập email"
+                        id="email"
+                        type="email"
+                        placeholder="Nhập email"
                         className="pl-11 h-10 rounded-full"
-                        value={email} onChange={(e) => setEmail(e.target.value)} required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
                     />
                 </div>
                 {localError && <p className="pl-4 text-xs text-red-600">{localError}</p>}
@@ -61,7 +76,7 @@ export default function EmailOtpForm({ title = "", description, nextHref }: Prop
             </div>
 
             <Button disabled={loading} className="w-full h-10 rounded-full bg-[#5f8f53] hover:bg-[#4f7d44]">
-                {loading ? "Đang gửi..." : "Nhận mã OTP"}
+                {loading ? "Đang gửi..." : (buttonText ?? "Nhận mã OTP")}
             </Button>
         </form>
     );

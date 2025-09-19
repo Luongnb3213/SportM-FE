@@ -4,7 +4,7 @@ import ReduxProvider from "@/lib/redux/provider";
 import { geistSans, geistMono, bigShoulders, openSans } from "@/styles/fonts";
 import ClientHydrator from "@/components/ClientHydrator";
 import type { User } from "@/lib/redux/features/auth/types";
-
+import { Toaster } from "sonner";
 export const metadata = { title: "SportM", description: "SportM Application" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +24,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <ReduxProvider>
                     <ClientHydrator user={user} />
                     {children}
+                    <Toaster richColors position="top-right" />
                 </ReduxProvider>
             </body>
         </html>
