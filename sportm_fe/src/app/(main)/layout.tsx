@@ -1,0 +1,13 @@
+import Header from "@/components/ui/header";
+import Footer from "@/components/ui/footer";
+
+export default function MainLayout({ children }: { children: React.ReactNode }) {
+  // chỉ dùng div wrapper, KHÔNG html/body
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </div>
+  );
+}
