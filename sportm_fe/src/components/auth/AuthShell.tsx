@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ReactNode } from "react";
 import { bigShoulders, openSans } from "@/styles/fonts";
+import Link from "next/link";
 
 type Props = {
     title: string;
@@ -32,7 +33,9 @@ export default function AuthShell({
                         <h1
                             className={`text-[64px] font-semibold leading-[150%] tracking-[-0.5px] text-[#669250] text-center ${bigShoulders.className}`}
                         >
-                            SPORTM
+                            <Link href="/" className="block">
+                                SPORTM
+                            </Link>
                         </h1>
 
                         <h2 className="text-[20px] font-bold leading-[28px] text-center">{title}</h2>
