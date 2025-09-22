@@ -4,12 +4,9 @@ import { cookies } from "next/headers";
 const BE = process.env.NEXT_PUBLIC_API_URL ?? "https://sportmbe.onrender.com";
 
 /** PATCH /api/manage/sport-type/:id  body: { typeName } */
-export async function PATCH(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    const { id } = await params; // 👈 phải await theo App Router
-    const token = (await cookies()).get("access_token")?.value;
+export async function PATCH(req: Request, context: { params: { id: string } }) {
+    const { id } = context.params;
+    const token = cookies().get("access_token")?.value; // sync
     const body = await req.json();
 
     const res = await fetch(`${BE}/sport-type/${id}`, {
@@ -30,12 +27,9 @@ export async function PATCH(
 }
 
 /** DELETE /api/manage/sport-type/:id */
-export async function DELETE(
-    _req: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    const { id } = await params; // 👈 phải await
-    const token = (await cookies()).get("access_token")?.value;
+export async function DELETE(_req: Request, context: { params: { id: string } }) {
+    const { id } = context.params;
+    const token = cookies().get("access_token")?.value; // sync
 
     const res = await fetch(`${BE}/sport-type/${id}`, {
         method: "DELETE",

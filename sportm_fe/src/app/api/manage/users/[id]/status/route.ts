@@ -3,14 +3,11 @@ import { cookies } from "next/headers";
 
 const BE = process.env.NEXT_PUBLIC_API_URL ?? "https://sportmbe.onrender.com";
 
-export async function POST(
-    req: Request,
-    { params }: { params: { id: string } }
-) {
+export async function POST(req: Request, context: { params: { id: string } }) {
     const body = await req.json();
     const token = (await cookies()).get("access_token")?.value;
 
-    const res = await fetch(`${BE}/users/${params.id}/status`, {
+    const res = await fetch(`${BE}/users/${context.params.id}/status`, {
         method: "POST",
         headers: {
             accept: "*/*",
