@@ -2,7 +2,6 @@
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
-/** fetch kèm base URL + header JSON mặc định */
 export async function api(path: string, init?: RequestInit): Promise<Response> {
     const headers = new Headers({ "Content-Type": "application/json" });
     if (init?.headers) {
