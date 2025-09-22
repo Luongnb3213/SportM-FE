@@ -24,7 +24,7 @@ export function middleware(req: NextRequest) {
     }
 
     // ADMIN-only
-    if (["/manage/users", "/manage/packages", "/manage/field-types"].some(p => url.pathname.startsWith(p))) {
+    if (["/manage/users", "/manage/packages", "/manage/sport-type"].some(p => url.pathname.startsWith(p))) {
         if (role !== "ADMIN") {
             url.pathname = "/manage";
             return NextResponse.redirect(url);
