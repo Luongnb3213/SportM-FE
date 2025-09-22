@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { User } from "@/lib/redux/features/auth/types";
+import { openSans, bigShoulders } from "@/styles/fonts"; // 👈 import fonts
 
 async function getUserFromCookie(): Promise<User | null> {
     const store = await cookies();
@@ -15,14 +16,14 @@ async function getUserFromCookie(): Promise<User | null> {
 export default async function ManageLayout({ children }: { children: React.ReactNode }) {
     const user = await getUserFromCookie();
     if (!user) redirect("/login");
-    if (user.role === "CLIENT") redirect("/"); // ✅ chặn client
+    if (user.role === "CLIENT") redirect("/");
 
     const adminNav = [
         { href: "/", label: "Trang chủ" },
         { href: "/manage/users", label: "Tài khoản" },
         { href: "/manage/ads", label: "Quảng cáo (tất cả)" },
         { href: "/manage/packages", label: "Gói đăng ký" },
-        { href: "/manage/field-types", label: "Loại sân" },
+        { href: "/manage/sport-type", label: "Loại sân" },
     ];
     const ownerNav = [
         { href: "/manage", label: "Trang chủ" },
@@ -35,16 +36,22 @@ export default async function ManageLayout({ children }: { children: React.React
     return (
         <div className="flex min-h-screen">
             <aside className="w-64 bg-[#1A2440] text-white p-4">
-                <Link href="/login" className="block text-2xl font-semibold mb-8">SPORTM</Link>
+                <Link href="/login" className={cn("block text-2xl font-semibold mb-8", bigShoulders.className)}>
+                    SPORTM
+                </Link>
                 <nav className="space-y-2">
-                    {nav.map(i => (
+                    {nav.map((i) => (
                         <Link key={i.href} href={i.href} className={cn("block px-3 py-2 rounded-md hover:bg-white/10")}>
                             {i.label}
                         </Link>
                     ))}
                 </nav>
             </aside>
-            <main className="flex-1 bg-gray-50 p-6 overflow-y-auto">{children}</main>
+
+            {/* 👇 Force Open Sans cho khu vực quản trị */}
+            <main className={cn("flex-1 bg-gray-50 p-6 overflow-y-auto", openSans.className)}>
+                {children}
+            </main>
         </div>
     );
 }
