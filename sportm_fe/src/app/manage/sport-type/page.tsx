@@ -110,9 +110,6 @@ export default function FieldTypesPage() {
         setConfirmId(null);
     }
 
-    // ẨN các item có status = false
-    const displayItems = items.filter(it => !!it.status);
-
     return (
         <div className="space-y-4">
             {/* Header + search + add */}
@@ -199,58 +196,75 @@ export default function FieldTypesPage() {
                                 </TableCell>
                             </TableRow>
                         )}
-
-                        {!loading && displayItems.length === 0 && (
+                        {!loading && items.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={3} className="text-center py-8 text-sm text-muted-foreground">
-                                    {error ? `Lỗi: ${error}` : "Không có dữ liệu hoạt động."}
+                                    {error ? `Lỗi: ${error}` : "Không có dữ liệu."}
                                 </TableCell>
                             </TableRow>
                         )}
 
                         {!loading &&
-                            displayItems.map((it) => {
+                            items.map((it) => {
                                 const id = it.sportTypeId;
                                 const isDeleting = deletingId === id;
+
                                 return (
                                     <TableRow key={id}>
                                         <TableCell className="font-medium">{it.typeName}</TableCell>
-                                        <TableCell>{"Hoạt động"}</TableCell>
-                                        <TableCell className="text-right space-x-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="hover:bg-sky-50 hover:text-sky-700"
-                                                onClick={() => openEdit(it)}
-                                                disabled={isDeleting || saving}
-                                                title="Sửa"
-                                            >
-                                                {saving && editing?.sportTypeId === id ? (
-                                                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <Pencil className="mr-1 h-4 w-4" />
-                                                )}
-                                                Sửa
-                                            </Button>
 
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => setConfirmId(id)}
-                                                disabled={isDeleting || saving}
-                                                title="Xóa"
-                                            >
-                                                {isDeleting ? (
-                                                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <Trash2 className="mr-1 h-4 w-4" />
-                                                )}
-                                                Xóa
-                                            </Button>
+                                        {/* Hiển thị đúng trạng thái */}
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`h-2.5 w-2.5 rounded-full ${it.status ? "bg-emerald-500" : "bg-gray-300"}`} />
+                                                <span className="text-sm">{it.status ? "Hoạt động" : "Không hoạt động"}</span>
+                                            </div>
                                         </TableCell>
+
+                                        <TableCell className="text-right space-x-2">
+                                            {it.status ? (
+                                                <>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="hover:bg-sky-50 hover:text-sky-700"
+                                                        onClick={() => openEdit(it)}
+                                                        disabled={isDeleting || saving}
+                                                        title="Sửa"
+                                                    >
+                                                        {saving && editing?.sportTypeId === id ? (
+                                                            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <Pencil className="mr-1 h-4 w-4" />
+                                                        )}
+                                                        Sửa
+                                                    </Button>
+
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => setConfirmId(id)}
+                                                        disabled={isDeleting || saving}
+                                                        title="Xóa"
+                                                    >
+                                                        {isDeleting ? (
+                                                            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="mr-1 h-4 w-4" />
+                                                        )}
+                                                        Xóa
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                // Không hiển thị nút với item không hoạt động
+                                                <span className="text-sm text-muted-foreground">—</span>
+                                            )}
+                                        </TableCell>
+
                                     </TableRow>
                                 );
                             })}
+
                     </TableBody>
                 </Table>
             </div>
