@@ -53,9 +53,29 @@ export const createSportType = createAsyncThunk<
         const res = await fetch(`/api/manage/sport-type`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body), // { typeName }
+            body: JSON.stringify(body), // { name }
         });
-        if (!res.ok) return rejectWithValue((await res.text()) || "Tạo mới thất bại");
+
+        if (!res.ok) {
+            const txt = await res.text();
+            // cố gắng parse json để bắt duplicate key
+            let msg = "Tạo mới thất bại";
+            try {
+                const j = JSON.parse(txt) as { statusCode?: number; data?: unknown };
+                const dataStr = String(j.data ?? "").toLowerCase();
+                if (j.statusCode === 500 && dataStr.includes("duplicate key")) {
+                    msg = "Loại sân này đã tồn tại";
+                }
+                if (j.statusCode === 409 || dataStr.includes("already exists")) {
+                    msg = "Loại sân này đã tồn tại";
+                }
+            } catch {
+                if (txt.toLowerCase().includes("duplicate key")) {
+                    msg = "Loại sân này đã tồn tại";
+                }
+            }
+            return rejectWithValue(msg);
+        }
 
         const json = (await res.json()) as { data: SportType };
         return json.data;
@@ -76,7 +96,26 @@ export const updateSportType = createAsyncThunk<
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name }),
         });
-        if (!res.ok) return rejectWithValue((await res.text()) || "Cập nhật thất bại");
+
+        if (!res.ok) {
+            const txt = await res.text();
+            let msg = "Cập nhật thất bại";
+            try {
+                const j = JSON.parse(txt) as { statusCode?: number; data?: unknown };
+                const dataStr = String(j.data ?? "").toLowerCase();
+                if (j.statusCode === 500 && dataStr.includes("duplicate key")) {
+                    msg = "Loại sân này đã tồn tại";
+                }
+                if (j.statusCode === 409 || dataStr.includes("already exists")) {
+                    msg = "Loại sân này đã tồn tại";
+                }
+            } catch {
+                if (txt.toLowerCase().includes("duplicate key")) {
+                    msg = "Loại sân này đã tồn tại";
+                }
+            }
+            return rejectWithValue(msg);
+        }
 
         const json = (await res.json()) as { data: SportType };
         return json.data;
