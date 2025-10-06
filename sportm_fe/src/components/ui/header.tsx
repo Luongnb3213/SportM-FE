@@ -44,8 +44,6 @@ export default function Header() {
 
     const clientNav = [
         { href: "/", label: "TRANG CHỦ" },
-        { href: "/services", label: "DỊCH VỤ" },
-        { href: "/pricing", label: "BẢNG GIÁ" },
         { href: "/about", label: "VỀ CHÚNG TÔI" },
     ];
 
@@ -140,14 +138,9 @@ export default function Header() {
                     <div className="hidden md:flex items-center justify-end gap-4 lg:gap-6">
                         {isAuthenticated && user ? (
                             <>
-                                <Link
-                                    href="/account"
-                                    className="flex items-center gap-2 uppercase font-semibold hover:opacity-80 text-[22px] lg:text-[22px]"
-                                >
                                     <User className="h-5 w-5" />
                                     <span className="hidden lg:inline">{user.fullName ?? "TÀI KHOẢN"}</span>
                                     <span className="lg:hidden">TÀI KHOẢN</span>
-                                </Link>
                                 <Button
                                     variant="ghost"
                                     className="uppercase font-semibold hover:underline text-[22px] lg:text-[22px]"
