@@ -44,7 +44,7 @@ export default function Header() {
 
     const clientNav = [
         { href: "/", label: "TRANG CHỦ" },
-        { href: "/about", label: "VỀ CHÚNG TÔI" },
+        { href: "/about-us", label: "VỀ CHÚNG TÔI" },
     ];
 
     let nav = clientNav;
