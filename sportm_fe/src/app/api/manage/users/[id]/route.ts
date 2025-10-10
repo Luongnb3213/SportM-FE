@@ -1,25 +1,20 @@
-import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
 const BE = process.env.NEXT_PUBLIC_API_URL ?? "https://sportmbe.onrender.com";
 
 type Params = { id: string };
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<Params> }) {
-    // ⬅️ params là Promise → cần await
     const { id } = await ctx.params;
-
-    // ⬅️ phiên bản của bạn: cookies() trả Promise
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token")?.value;
-
+    const token = (await cookies()).get("access_token")?.value;
     const body = await req.json();
 
-    const res = await fetch(`${BE}/admin/users/${id}/status`, {
+    const res = await fetch(`${BE}/admin/users/${id}`, {
         method: "PATCH",
         headers: {
-            accept: "*/*",
             "Content-Type": "application/json",
+            accept: "*/*",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(body),
