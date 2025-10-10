@@ -34,18 +34,15 @@ function resolveToken(raw?: string) {
     }
 }
 
-type Params = { id: string };
-
-export async function PATCH(req: NextRequest, ctx: { params: Promise<Params> }) {
+export async function GET(req: NextRequest) {
     try {
-        const { id } = await ctx.params;
+        const url = new URL(req.url);
+        const qs = url.search; // ?page=&limit=&search=&status=
         const token = resolveToken((await cookies()).get("access_token")?.value);
-        const body = await req.text();
 
-        const res = await fetch(`${API_BASE}/advertisement/${id}`, {
-            method: "PATCH",
-            headers: buildHeaders(token, { "Content-Type": "application/json" }),
-            body,
+        const res = await fetch(`${API_BASE}/advertisement${qs}`, {
+            method: "GET",
+            headers: buildHeaders(token),
         });
 
         return await proxyResponse(res);
@@ -55,14 +52,15 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<Params> }) 
     }
 }
 
-export async function DELETE(_: NextRequest, ctx: { params: Promise<Params> }) {
+export async function POST(req: NextRequest) {
     try {
-        const { id } = await ctx.params;
         const token = resolveToken((await cookies()).get("access_token")?.value);
+        const body = await req.text();
 
-        const res = await fetch(`${API_BASE}/advertisement/${id}`, {
-            method: "DELETE",
-            headers: buildHeaders(token),
+        const res = await fetch(`${API_BASE}/advertisement`, {
+            method: "POST",
+            headers: buildHeaders(token, { "Content-Type": "application/json" }),
+            body,
         });
 
         return await proxyResponse(res);

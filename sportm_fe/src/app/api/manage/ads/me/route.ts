@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const API_BASE =
     process.env.NEXT_PUBLIC_API_URL ||
@@ -8,11 +8,10 @@ const API_BASE =
     process.env.API_URL ||
     "https://sportmbe.onrender.com";
 
-function buildHeaders(token: string | undefined, extra?: HeadersInit) {
+function buildHeaders(token: string | undefined) {
     return {
         accept: "*/*",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(extra ?? {}),
     };
 }
 
@@ -34,34 +33,14 @@ function resolveToken(raw?: string) {
     }
 }
 
-type Params = { id: string };
-
-export async function PATCH(req: NextRequest, ctx: { params: Promise<Params> }) {
+export async function GET(req: Request) {
     try {
-        const { id } = await ctx.params;
-        const token = resolveToken((await cookies()).get("access_token")?.value);
-        const body = await req.text();
-
-        const res = await fetch(`${API_BASE}/advertisement/${id}`, {
-            method: "PATCH",
-            headers: buildHeaders(token, { "Content-Type": "application/json" }),
-            body,
-        });
-
-        return await proxyResponse(res);
-    } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unexpected error";
-        return NextResponse.json({ error: message }, { status: 500 });
-    }
-}
-
-export async function DELETE(_: NextRequest, ctx: { params: Promise<Params> }) {
-    try {
-        const { id } = await ctx.params;
+        const url = new URL(req.url);
+        const qs = url.search;
         const token = resolveToken((await cookies()).get("access_token")?.value);
 
-        const res = await fetch(`${API_BASE}/advertisement/${id}`, {
-            method: "DELETE",
+        const res = await fetch(`${API_BASE}/advertisement/me${qs}`, {
+            method: "GET",
             headers: buildHeaders(token),
         });
 

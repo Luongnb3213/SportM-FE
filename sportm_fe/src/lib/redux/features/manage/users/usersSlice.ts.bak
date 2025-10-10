@@ -2,7 +2,6 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PaginationMeta } from "@/lib/redux/types";
-import type { UpdateUserRoleBody } from "./types";
 
 export type UserRow = {
     userId: string;
@@ -85,29 +84,6 @@ export const updateUserStatus = createAsyncThunk<
     }
 });
 
-export const updateUserRole = createAsyncThunk<
-    { userId: string; role: UserRow["role"] },
-    { userId: string; role: UserRow["role"] },
-    { rejectValue: string }
->("users/updateRole", async ({ userId, role }, { rejectWithValue }) => {
-    try {
-        const res = await fetch(`/api/manage/users/${userId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role } satisfies UpdateUserRoleBody),
-        });
-
-        if (!res.ok) {
-            const txt = await res.text();
-            return rejectWithValue(txt || "Cập nhật vai trò thất bại");
-        }
-
-        return { userId, role };
-    } catch (err: unknown) {
-        return rejectWithValue(err instanceof Error ? err.message : "Network error");
-    }
-});
-
 type UsersState = {
     items: UserRow[];
     meta: PaginationMeta | null;
@@ -148,12 +124,6 @@ const usersSlice = createSlice({
             const { userId, status } = action.payload;
             const u = state.items.find((x) => x.userId === userId);
             if (u) u.status = status;
-        });
-
-        builder.addCase(updateUserRole.fulfilled, (state, action) => {
-            const { userId, role } = action.payload;
-            const u = state.items.find((x) => x.userId === userId);
-            if (u) u.role = role;
         });
     },
 });

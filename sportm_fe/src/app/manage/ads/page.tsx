@@ -85,6 +85,7 @@ export default function ManageAdsPage() {
     const [homeLoadingId, setHomeLoadingId] = useState<string | null>(null);
     const [recoverLoadingId, setRecoverLoadingId] = useState<string | null>(null);
     const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const onOpenPriority = (id: string, order?: number | null) => {
         if (isOwner) return;
         setPriorityId(id);

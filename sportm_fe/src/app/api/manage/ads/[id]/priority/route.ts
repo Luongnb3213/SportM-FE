@@ -8,11 +8,10 @@ const API_BASE =
     process.env.API_URL ||
     "https://sportmbe.onrender.com";
 
-function buildHeaders(token: string | undefined, extra?: HeadersInit) {
+function buildHeaders(token: string | undefined) {
     return {
         accept: "*/*",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(extra ?? {}),
     };
 }
 
@@ -40,28 +39,11 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<Params> }) 
     try {
         const { id } = await ctx.params;
         const token = resolveToken((await cookies()).get("access_token")?.value);
-        const body = await req.text();
+        const url = new URL(req.url);
+        const order = url.searchParams.get("order") ?? "";
 
-        const res = await fetch(`${API_BASE}/advertisement/${id}`, {
+        const res = await fetch(`${API_BASE}/advertisement/${id}/priority?order=${order}`, {
             method: "PATCH",
-            headers: buildHeaders(token, { "Content-Type": "application/json" }),
-            body,
-        });
-
-        return await proxyResponse(res);
-    } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unexpected error";
-        return NextResponse.json({ error: message }, { status: 500 });
-    }
-}
-
-export async function DELETE(_: NextRequest, ctx: { params: Promise<Params> }) {
-    try {
-        const { id } = await ctx.params;
-        const token = resolveToken((await cookies()).get("access_token")?.value);
-
-        const res = await fetch(`${API_BASE}/advertisement/${id}`, {
-            method: "DELETE",
             headers: buildHeaders(token),
         });
 
