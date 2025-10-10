@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     // Nếu bạn lưu token trong cookie (ví dụ "token"), lấy ra và đính vào Authorization
     const token = (await cookies()).get("access_token")?.value;
     
-    const res = await fetch(`${BE}/users${search}`, {
+    const res = await fetch(`${BE}/admin/users${search}`, {
         method: "GET",
         headers: {
             accept: "*/*",

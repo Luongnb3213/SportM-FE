@@ -12,5 +12,9 @@ export type UserRow = {
 
 export type UsersPayload = {
     items: UserRow[];
-    meta: PaginationMeta; 
+    meta: PaginationMeta;
+};
+
+export type UpdateUserRoleBody = {
+    role: UserRow["role"];
 };
