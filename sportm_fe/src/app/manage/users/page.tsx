@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
 type RoleFilter = "ALL" | "ADMIN" | "OWNER" | "CLIENT";
@@ -187,7 +188,13 @@ export default function ManageUsersPage() {
             </div>
 
             <div className="rounded-lg border bg-white shadow-sm">
-                <Table>
+                <div className="relative">
+                    {loading && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/80 backdrop-blur-sm">
+                            <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+                        </div>
+                    )}
+                    <Table className={cn(loading && "opacity-40 pointer-events-none")}>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Họ tên</TableHead>
@@ -229,6 +236,7 @@ export default function ManageUsersPage() {
                         ))}
                     </TableBody>
                 </Table>
+                </div>
             </div>
 
             <div className="flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">

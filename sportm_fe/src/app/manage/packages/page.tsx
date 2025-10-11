@@ -136,7 +136,7 @@ export default function ManagePackagesPage() {
                 </Button>
             </div>
 
-            <Card>
+            <Card className="py-0">
                 <CardHeader className="flex flex-col gap-2 border-b md:flex-row md:items-center md:justify-between">
                     <CardTitle className="text-lg font-semibold">Danh sách gói</CardTitle>
                     <Badge variant="secondary">
@@ -144,8 +144,14 @@ export default function ManagePackagesPage() {
                     </Badge>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <div className={cn("w-full overflow-x-auto px-4 pb-4 transition-opacity", loading && "pointer-events-none opacity-60") }>
-                        <Table className="min-w-[720px]">
+                    <div className="relative">
+                        {loading && (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-b-xl bg-white/80 backdrop-blur-sm">
+                                <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+                            </div>
+                        )}
+                        <div className={cn("w-full overflow-x-auto px-4 pb-4 transition-opacity", loading && "pointer-events-none opacity-40")}>
+                            <Table className="min-w-[720px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-[60px] text-center">#</TableHead>
@@ -196,6 +202,7 @@ export default function ManagePackagesPage() {
                                 )}
                             </TableBody>
                         </Table>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

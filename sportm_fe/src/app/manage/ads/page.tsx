@@ -490,9 +490,15 @@ export default function ManageAdsPage() {
             </Card>
 
             {/* Table */}
-            <Card>
+            <Card className="py-0">
                 <CardContent className="p-0">
-                    <div className={cn("w-full overflow-x-auto transition-opacity", loading && "pointer-events-none opacity-60")}>
+                    <div className="relative">
+                        {loading && (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-b-xl bg-white/80 backdrop-blur-sm">
+                                <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+                            </div>
+                        )}
+                        <div className={cn("w-full overflow-x-auto transition-opacity", loading && "pointer-events-none opacity-40")}>
                         <Table className="min-w-[720px]">
                             <TableHeader>
                             <TableRow>
@@ -695,6 +701,7 @@ export default function ManageAdsPage() {
                             )}
                             </TableBody>
                         </Table>
+                    </div>
                     </div>
                 </CardContent>
 
