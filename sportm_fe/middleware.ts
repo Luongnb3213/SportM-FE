@@ -1,46 +1,67 @@
 // middleware.ts
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+type Role = "ADMIN" | "OWNER" | "CLIENT" | null;
+
+const ADMIN_ONLY_PATTERNS = [
+    /^\/manage\/users(?:\/|$)/,
+    /^\/manage\/packages(?:\/|$)/,
+    /^\/manage\/sport-type(?:\/|$)/,
+];
+
+const OWNER_ONLY_PATTERNS = [
+    /^\/manage\/fields(?:\/|$)/,
+    /^\/manage\/reports(?:\/|$)/,
+];
+
+function parseRole(raw: string | undefined | null): Role {
+    if (!raw) return null;
+    try {
+        const decoded = decodeURIComponent(raw);
+        const obj = JSON.parse(decoded) as { role?: unknown };
+        const role = obj?.role;
+        if (role === "ADMIN" || role === "OWNER" || role === "CLIENT") return role;
+        return null;
+    } catch {
+        return null;
+    }
+}
+
 export function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
-    const raw = req.cookies.get("user")?.value;
+    const pathname = url.pathname;
+    const role = parseRole(req.cookies.get("user")?.value);
 
-    let role: "ADMIN" | "OWNER" | "CLIENT" | null = null;
-    try {
-        role = raw ? (JSON.parse(decodeURIComponent(raw)).role as "ADMIN" | "OWNER" | "CLIENT") : null;
-    } catch { role = null; }
+    if (!pathname.startsWith("/manage")) {
+        return NextResponse.next();
+    }
 
-    // chưa đăng nhập -> về /login
-    if (url.pathname.startsWith("/manage") && !role) {
+    if (!role) {
         url.pathname = "/login";
         return NextResponse.redirect(url);
     }
 
-    // CLIENT không có quyền vào khu manage
-    if (url.pathname.startsWith("/manage") && role === "CLIENT") {
+    if (role === "CLIENT") {
         url.pathname = "/";
         return NextResponse.redirect(url);
     }
 
-    // ADMIN-only
-    if (["/manage/users", "/manage/packages", "/manage/sport-type"].some(p => url.pathname.startsWith(p))) {
+    if (ADMIN_ONLY_PATTERNS.some((pattern) => pattern.test(pathname))) {
         if (role !== "ADMIN") {
             url.pathname = "/manage";
             return NextResponse.redirect(url);
         }
     }
 
-
-    // OWNER-only
-    if (["/manage/fields", "/manage/reports"].some(p => url.pathname.startsWith(p))) {
+    if (OWNER_ONLY_PATTERNS.some((pattern) => pattern.test(pathname))) {
         if (role !== "OWNER") {
             url.pathname = "/manage";
             return NextResponse.redirect(url);
         }
     }
 
-    // /manage/ads: cả ADMIN và OWNER vào được
     return NextResponse.next();
 }
 
