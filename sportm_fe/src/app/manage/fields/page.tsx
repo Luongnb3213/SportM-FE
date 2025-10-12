@@ -1,7 +1,16 @@
 // src/app/manage/fields/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ChangeEvent,
+    type Dispatch,
+    type SetStateAction,
+} from "react";
+import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import type { AppDispatch } from "@/lib/redux/store";
@@ -32,9 +41,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, PenSquare, Plus } from "lucide-react";
 import MapPicker from "@/components/ui/map/MapPicker";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const PAGE_SIZE_DEFAULT = 10;
-const IMG_URLS_MAX_HINT = 10;
+const COURT_IMAGE_MAX = 5;
 
 type CourtFormState = {
     name: string;
@@ -60,6 +70,13 @@ const emptyForm: CourtFormState = {
     imageList: "",
 };
 
+function parseImageList(raw: string): string[] {
+    return raw
+        .split(/\r?\n|,/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+}
+
 function parseOptionalNumber(value: string): number | undefined {
     const trimmed = value.trim();
     if (!trimmed) return undefined;
@@ -83,12 +100,14 @@ export default function ManageFieldsPage() {
     const [openCreate, setOpenCreate] = useState(false);
     const [creating, setCreating] = useState(false);
     const [form, setForm] = useState<CourtFormState>(emptyForm);
+    const [createImagesUploading, setCreateImagesUploading] = useState(false);
 
     // edit dialog state
     const [openEdit, setOpenEdit] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<CourtFormState>(emptyForm);
     const [updating, setUpdating] = useState(false);
+    const [editImagesUploading, setEditImagesUploading] = useState(false);
 
     const pageTotal = useMemo(() => meta?.totalPages ?? 1, [meta]);
 
@@ -134,13 +153,6 @@ export default function ManageFieldsPage() {
         };
     }
 
-    function parseImageList(raw: string): string[] {
-        return raw
-            .split(/\r?\n|,/)
-            .map((item) => item.trim())
-            .filter((item) => item.length > 0);
-    }
-
     function buildPayload(state: CourtFormState) {
         const latNumber = parseOptionalNumber(state.lat);
         const lngNumber = parseOptionalNumber(state.lng);
@@ -168,7 +180,7 @@ export default function ManageFieldsPage() {
 
         const images = parseImageList(state.imageList);
         if (images.length === 0) return "Vui lòng thêm ít nhất một đường dẫn ảnh";
-        if (images.length > IMG_URLS_MAX_HINT) return `Chỉ nên nhập tối đa ${IMG_URLS_MAX_HINT} ảnh`;
+        if (images.length > COURT_IMAGE_MAX) return `Chỉ nên nhập tối đa ${COURT_IMAGE_MAX} ảnh`;
 
         if (state.pricePerHour.trim()) {
             const price = parseOptionalNumber(state.pricePerHour);
@@ -188,6 +200,10 @@ export default function ManageFieldsPage() {
     }
 
     async function handleCreate() {
+        if (createImagesUploading) {
+            toast.error("Vui lòng chờ upload ảnh hoàn tất");
+            return;
+        }
         const err = validateForm(form);
         if (err) {
             toast.error(err);
@@ -219,6 +235,11 @@ export default function ManageFieldsPage() {
 
     async function handleUpdate() {
         if (!editingId) return;
+
+        if (editImagesUploading) {
+            toast.error("Vui lòng chờ upload ảnh hoàn tất");
+            return;
+        }
 
         const err = validateForm(editForm);
         if (err) {
@@ -283,11 +304,12 @@ export default function ManageFieldsPage() {
                             state={form}
                             onChange={setForm}
                             sportTypes={sportTypes}
+                            onUploadingChange={setCreateImagesUploading}
                         />
                         <DialogFooter className="mt-4 gap-2">
                             <Button
                                 variant="outline"
-                                disabled={creating}
+                                disabled={creating || createImagesUploading}
                                 onClick={() => {
                                     setOpenCreate(false);
                                     setCreating(false);
@@ -296,7 +318,7 @@ export default function ManageFieldsPage() {
                             >
                                 Hủy
                             </Button>
-                            <Button onClick={handleCreate} disabled={creating}>
+                            <Button onClick={handleCreate} disabled={creating || createImagesUploading}>
                                 {creating ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -331,11 +353,33 @@ export default function ManageFieldsPage() {
                                 {loading ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Đang tìm...
+                                        Đang tải...
                                     </>
-                                ) : "Tìm"}
+                                ) : "Lọc"}
                             </Button>
                         </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <Label>Số mục/trang</Label>
+                        <Select
+                            value={String(limit)}
+                            onValueChange={(value) => {
+                                setLimit(Number(value));
+                                setPage(1);
+                            }}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Chọn..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {[10, 20, 30, 50].map((item) => (
+                                    <SelectItem key={item} value={String(item)}>
+                                        {item} mục
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -347,7 +391,9 @@ export default function ManageFieldsPage() {
                                 setPage(1);
                             }}
                         >
-                            <SelectTrigger><SelectValue placeholder="Tất cả" /></SelectTrigger>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Tất cả" />
+                            </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Tất cả</SelectItem>
                                 {sportTypes.map((type) => (
@@ -358,121 +404,97 @@ export default function ManageFieldsPage() {
                             </SelectContent>
                         </Select>
                     </div>
-
-                    <div className="flex flex-col gap-2">
-                        <Label>Mỗi trang</Label>
-                        <Select
-                            value={String(limit)}
-                            onValueChange={(value) => {
-                                setLimit(Number(value));
-                                setPage(1);
-                            }}
-                        >
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="5">5</SelectItem>
-                                <SelectItem value="10">10</SelectItem>
-                                <SelectItem value="20">20</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
                 </CardContent>
             </Card>
 
-            <Card className={cn(openSans.className, "py-0")}>
-                <CardContent className="p-0">
-                    <div className="relative">
-                        {loading && (
-                            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-b-xl bg-white/80 backdrop-blur-sm">
-                                <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
-                            </div>
-                        )}
-                        <div className={cn("w-full overflow-x-auto transition-opacity", loading && "pointer-events-none opacity-40")}>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="min-w-[200px]">Tên sân</TableHead>
-                                        <TableHead className="min-w-[160px]">Loại hình</TableHead>
-                                        <TableHead className="min-w-[200px]">Địa chỉ</TableHead>
-                                        <TableHead>Giá/giờ</TableHead>
-                                        <TableHead className="min-w-[180px]">Dịch vụ kèm</TableHead>
-                                        <TableHead className="min-w-[160px]">Trạng thái</TableHead>
-                                        <TableHead className="min-w-[120px]" />
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {items.map((court: Court) => (
-                                        <TableRow key={court.courtId}>
-                                            <TableCell>
-                                                <div className="font-medium">{court.courtName}</div>
-                                                <div className="text-xs text-muted-foreground line-clamp-2">
-                                                    {court.description || "Không có mô tả"}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>{court.sportType?.typeName ?? "-"}</TableCell>
-                                            <TableCell>
-                                                <div className="text-sm">{court.address}</div>
+            <Card className="border">
+                <CardHeader className="py-4">
+                    <CardTitle className="text-lg">Danh sách sân</CardTitle>
+                </CardHeader>
+                <CardContent className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Thông tin</TableHead>
+                                <TableHead>Loại hình</TableHead>
+                                <TableHead>Giá thuê</TableHead>
+                                <TableHead>Trạng thái</TableHead>
+                                <TableHead>Đánh giá</TableHead>
+                                <TableHead className="w-24 text-right">Thao tác</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {items.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                                        Chưa có dữ liệu
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                items.map((court) => (
+                                    <TableRow key={court.courtId}>
+                                        <TableCell className="align-top">
+                                            <div className="space-y-1">
+                                                <p className="font-medium">{court.courtName}</p>
+                                                <p className="text-sm text-muted-foreground">{court.address}</p>
                                                 <div className="text-xs text-muted-foreground">
-                                                    {court.lat != null && court.lng != null ? `(${court.lat}, ${court.lng})` : "Chưa định vị"}
+                                                    {Array.isArray(court.courtImages) && court.courtImages.length > 0 ? (
+                                                        <span>{court.courtImages.length} ảnh</span>
+                                                    ) : (
+                                                        <span>Chưa có ảnh</span>
+                                                    )}
                                                 </div>
-                                            </TableCell>
-                                            <TableCell>{fmtCurrency(court.pricePerHour)}</TableCell>
-                                            <TableCell>{court.subService || "-"}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={court.isActive ? "default" : "secondary"}>
-                                                    {court.isActive ? "Đang hoạt động" : "Tạm khóa"}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="gap-2"
-                                                    onClick={() => openEditDialog(court)}
-                                                >
-                                                    <PenSquare className="h-4 w-4" />
-                                                    Sửa
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="align-top">
+                                            {court.sportType ? court.sportType.typeName : "-"}
+                                        </TableCell>
+                                        <TableCell className="align-top">
+                                            {fmtCurrency(court.pricePerHour)}
+                                        </TableCell>
+                                        <TableCell className="align-top">
+                                            <Badge variant={court.isActive ? "default" : "outline"}>
+                                                {court.isActive ? "Đang hoạt động" : "Tạm dừng"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="align-top">
+                                            {court.avgRating != null ? court.avgRating.toFixed(1) : "-"}
+                                        </TableCell>
+                                        <TableCell className="align-top text-right">
+                                            <Button size="icon" variant="ghost" onClick={() => openEditDialog(court)}>
+                                                <PenSquare className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
 
-                                    {!loading && items.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                                                Chưa có sân nào. Hãy nhấn <strong>Tạo sân</strong> để bắt đầu.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                    <div className="mt-4 flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                            Trang {page}/{pageTotal}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={page <= 1}
+                                onClick={() => setPage((prev) => prev - 1)}
+                            >
+                                Trước
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={page >= pageTotal}
+                                onClick={() => setPage((prev) => prev + 1)}
+                            >
+                                Sau
+                            </Button>
                         </div>
                     </div>
                 </CardContent>
-
-                <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="text-sm text-muted-foreground">
-                        Trang {meta?.currentPage ?? page}/{pageTotal} · Tổng {meta?.totalItems ?? 0}
-                    </div>
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={page <= 1}
-                            onClick={() => setPage((prev) => prev - 1)}
-                        >
-                            Trước
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={page >= pageTotal}
-                            onClick={() => setPage((prev) => prev + 1)}
-                        >
-                            Sau
-                        </Button>
-                    </div>
-                </div>
             </Card>
 
             <Dialog open={openEdit} onOpenChange={(open) => {
@@ -491,11 +513,12 @@ export default function ManageFieldsPage() {
                         state={editForm}
                         onChange={setEditForm}
                         sportTypes={sportTypes}
+                        onUploadingChange={setEditImagesUploading}
                     />
                     <DialogFooter className="mt-4 gap-2">
                         <Button
                             variant="outline"
-                            disabled={updating}
+                            disabled={updating || editImagesUploading}
                             onClick={() => {
                                 setOpenEdit(false);
                                 setUpdating(false);
@@ -504,7 +527,7 @@ export default function ManageFieldsPage() {
                         >
                             Hủy
                         </Button>
-                        <Button onClick={handleUpdate} disabled={updating}>
+                        <Button onClick={handleUpdate} disabled={updating || editImagesUploading}>
                             {updating ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -523,11 +546,28 @@ type CourtFormFieldsProps = {
     state: CourtFormState;
     onChange: Dispatch<SetStateAction<CourtFormState>>;
     sportTypes: Array<{ sportTypeId: string; typeName: string }>;
+    onUploadingChange?: (uploading: boolean) => void;
 };
 
-function CourtFormFields({ state, onChange, sportTypes }: CourtFormFieldsProps) {
+function CourtFormFields({
+    state,
+    onChange,
+    sportTypes,
+    onUploadingChange,
+}: CourtFormFieldsProps) {
     const latValue = parseOptionalNumber(state.lat);
     const lngValue = parseOptionalNumber(state.lng);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [uploadingImages, setUploadingImages] = useState(false);
+
+    const images = useMemo(() => parseImageList(state.imageList), [state.imageList]);
+    const remainingSlots = COURT_IMAGE_MAX - images.length;
+
+    useEffect(() => {
+        onUploadingChange?.(uploadingImages);
+    }, [uploadingImages, onUploadingChange]);
+
+    useEffect(() => () => onUploadingChange?.(false), [onUploadingChange]);
 
     function handleCoordsChange(coords: { lat: number; lng: number }) {
         onChange((prev) => ({
@@ -535,6 +575,63 @@ function CourtFormFields({ state, onChange, sportTypes }: CourtFormFieldsProps) 
             lat: coords.lat.toFixed(6),
             lng: coords.lng.toFixed(6),
         }));
+    }
+
+    function triggerImagePicker() {
+        if (remainingSlots <= 0) {
+            toast.error(`Đã đạt tối đa ${COURT_IMAGE_MAX} ảnh`);
+            return;
+        }
+        fileInputRef.current?.click();
+    }
+
+    function handleRemoveImage(target: string) {
+        onChange((prev) => {
+            const current = parseImageList(prev.imageList).filter((item) => item !== target);
+            return { ...prev, imageList: current.join("\n") };
+        });
+    }
+
+    async function handleSelectImages(event: ChangeEvent<HTMLInputElement>) {
+        const files = Array.from(event.target.files ?? []);
+        event.target.value = "";
+        if (!files.length) return;
+
+        if (remainingSlots <= 0) {
+            toast.error(`Đã đạt tối đa ${COURT_IMAGE_MAX} ảnh`);
+            return;
+        }
+
+        const selected = files.slice(0, remainingSlots);
+        if (files.length > selected.length) {
+            toast.info(`Chỉ tải lên ${selected.length} trong số ${files.length} ảnh đã chọn.`);
+        }
+
+        setUploadingImages(true);
+        try {
+            const uploads = await Promise.all(
+                selected.map((file) => uploadToCloudinary(file, { folder: "sportm/courts" })),
+            );
+            const uploadedUrls = uploads
+                .map((item) => item.secure_url || item.url)
+                .filter((url): url is string => typeof url === "string" && url.length > 0);
+
+            if (!uploadedUrls.length) {
+                throw new Error("Không lấy được URL ảnh từ Cloudinary");
+            }
+
+            onChange((prev) => {
+                const current = parseImageList(prev.imageList);
+                const merged = Array.from(new Set([...current, ...uploadedUrls])).slice(0, COURT_IMAGE_MAX);
+                return { ...prev, imageList: merged.join("\n") };
+            });
+            toast.success("Upload ảnh thành công");
+        } catch (error) {
+            console.error(error);
+            toast.error(error instanceof Error ? error.message : "Upload ảnh thất bại");
+        } finally {
+            setUploadingImages(false);
+        }
     }
 
     return (
@@ -577,9 +674,11 @@ function CourtFormFields({ state, onChange, sportTypes }: CourtFormFieldsProps) 
                 <Label>Loại hình thể thao</Label>
                 <Select
                     value={state.sportTypeId}
-                        onValueChange={(value) => onChange((prev) => ({ ...prev, sportTypeId: value }))}
+                    onValueChange={(value) => onChange((prev) => ({ ...prev, sportTypeId: value }))}
                 >
-                    <SelectTrigger><SelectValue placeholder="Chọn loại hình" /></SelectTrigger>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Chọn loại hình" />
+                    </SelectTrigger>
                     <SelectContent>
                         {sportTypes.map((type) => (
                             <SelectItem key={type.sportTypeId} value={type.sportTypeId}>
@@ -640,7 +739,7 @@ function CourtFormFields({ state, onChange, sportTypes }: CourtFormFieldsProps) 
             </div>
 
             <div className="grid gap-2 md:col-span-2">
-                <Label htmlFor="court-images">Đường dẫn ảnh (mỗi dòng 1 URL)</Label>
+                <Label htmlFor="court-images">Ảnh sân (mỗi dòng 1 URL)</Label>
                 <Textarea
                     id="court-images"
                     rows={4}
@@ -648,8 +747,75 @@ function CourtFormFields({ state, onChange, sportTypes }: CourtFormFieldsProps) 
                     value={state.imageList}
                     onChange={(event) => onChange((prev) => ({ ...prev, imageList: event.target.value }))}
                 />
+                <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={triggerImagePicker}
+                        disabled={uploadingImages}
+                    >
+                        {uploadingImages ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Đang tải...
+                            </>
+                        ) : (
+                            "Upload ảnh"
+                        )}
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                        {images.length}/{COURT_IMAGE_MAX} ảnh
+                    </span>
+                    {images.length > 0 && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onChange((prev) => ({ ...prev, imageList: "" }))}
+                            disabled={uploadingImages}
+                        >
+                            Xóa tất cả
+                        </Button>
+                    )}
+                </div>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleSelectImages}
+                />
+                {images.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {images.map((url) => (
+                            <div key={url} className="relative h-20 w-20 overflow-hidden rounded border">
+                                <Image
+                                    src={url}
+                                    alt="Ảnh sân"
+                                    width={80}
+                                    height={80}
+                                    className="h-full w-full object-cover"
+                                    unoptimized
+                                />
+                                <button
+                                    type="button"
+                                    title="Xóa ảnh"
+                                    aria-label="Xóa ảnh"
+                                    className="absolute -right-2 -top-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow transition hover:bg-red-600 disabled:opacity-60"
+                                    onClick={() => handleRemoveImage(url)}
+                                    disabled={uploadingImages}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
                 <p className="text-xs text-muted-foreground">
-                    Tối đa khoảng {IMG_URLS_MAX_HINT} ảnh để đảm bảo tốc độ tải.
+                    Tối đa {COURT_IMAGE_MAX} ảnh.{" "}
+                    {remainingSlots > 0
+                        ? `Có thể thêm ${remainingSlots} ảnh nữa hoặc nhập URL thủ công.`
+                        : "Đã đủ số lượng ảnh."}
                 </p>
             </div>
         </div>

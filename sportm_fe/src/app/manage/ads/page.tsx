@@ -1,7 +1,8 @@
 // src/app/manage/ads/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch } from "@/lib/redux/store";
 import type { RootState } from "@/lib/redux/store";
@@ -18,6 +19,7 @@ import type { Advertisement, CreateAdBody } from "@/lib/redux/features/manage/ad
 import { cn } from "@/lib/utils";
 import { bigShoulders, openSans } from "@/styles/fonts";
 import { toast } from "sonner";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 // shadcn
 import { Button } from "@/components/ui/button";
@@ -77,6 +79,10 @@ export default function ManageAdsPage() {
         startDate: "",
         endDate: "",
     });
+    const createImageInputRef = useRef<HTMLInputElement | null>(null);
+    const editImageInputRef = useRef<HTMLInputElement | null>(null);
+    const [createImageUploading, setCreateImageUploading] = useState(false);
+    const [editImageUploading, setEditImageUploading] = useState(false);
 
     // priority dialog
     const [priorityId, setPriorityId] = useState<string | null>(null);
@@ -103,6 +109,10 @@ export default function ManageAdsPage() {
     const pageTotal = useMemo(() => meta?.totalPages ?? 1, [meta]);
     const emptyColSpan = isOwner ? 7 : 9;
 
+    const startMinLocal = minFutureLocal();
+    const createEndMinLocal = minFutureLocal(form.startDate);
+    const editEndMinLocal = minFutureLocal(editForm.startDate);
+
     function resetForm() {
         setForm({ title: "", content: "", imageUrl: "", startDate: "", endDate: "" });
     }
@@ -111,9 +121,61 @@ export default function ManageAdsPage() {
         setEditForm({ title: "", content: "", imageUrl: "", startDate: "", endDate: "" });
     }
 
+    function triggerImagePicker(mode: "create" | "edit") {
+        const ref = mode === "create" ? createImageInputRef : editImageInputRef;
+        ref.current?.click();
+    }
+
+    async function handleImageFileSelected(
+        event: ChangeEvent<HTMLInputElement>,
+        mode: "create" | "edit",
+    ) {
+        const file = event.target.files?.[0] ?? null;
+        event.target.value = "";
+        if (!file) return;
+
+        const setUploading = mode === "create" ? setCreateImageUploading : setEditImageUploading;
+        setUploading(true);
+        try {
+            const uploaded = await uploadToCloudinary(file, { folder: "sportm/ads" });
+            const url = uploaded.secure_url || uploaded.url;
+            if (!url) throw new Error("Không lấy được URL ảnh từ Cloudinary");
+            if (mode === "create") {
+                setForm((prev) => ({ ...prev, imageUrl: url }));
+            } else {
+                setEditForm((prev) => ({ ...prev, imageUrl: url }));
+            }
+            toast.success("Upload ảnh lên Cloudinary thành công");
+        } catch (error) {
+            console.error(error);
+            toast.error(error instanceof Error ? error.message : "Upload ảnh thất bại");
+        } finally {
+            setUploading(false);
+        }
+    }
+
     async function handleCreate() {
+        if (createImageUploading) {
+            toast.error("Vui lòng chờ upload ảnh hoàn tất");
+            return;
+        }
         if (!form.title || !form.imageUrl || !form.startDate || !form.endDate) {
-            toast.error("Vui lòng điền Tiêu đề, Đường dẫn ảnh và thời gian bắt đầu/kết thúc");
+            toast.error("Vui lòng nhập Tiêu đề, ảnh và thời gian bắt đầu/kết thúc");
+            return;
+        }
+        const now = new Date();
+        const startDateObj = new Date(form.startDate);
+        const endDateObj = new Date(form.endDate);
+        if (Number.isNaN(startDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
+            toast.error("Thời gian không hợp lệ");
+            return;
+        }
+        if (startDateObj < now) {
+            toast.error("Thời gian bắt đầu phải nằm trong tương lai");
+            return;
+        }
+        if (endDateObj <= startDateObj) {
+            toast.error("Thời gian kết thúc phải sau thời gian bắt đầu");
             return;
         }
         setCreating(true);
@@ -148,8 +210,27 @@ export default function ManageAdsPage() {
 
     async function handleUpdate() {
         if (!editingId) return;
+        if (editImageUploading) {
+            toast.error("Vui lòng chờ upload ảnh hoàn tất");
+            return;
+        }
         if (!editForm.title || !editForm.imageUrl || !editForm.startDate || !editForm.endDate) {
-            toast.error("Vui lòng điền Tiêu đề, Đường dẫn ảnh và thời gian bắt đầu/kết thúc");
+            toast.error("Vui lòng nhập Tiêu đề, ảnh và thời gian bắt đầu/kết thúc");
+            return;
+        }
+        const now = new Date();
+        const startDateObj = new Date(editForm.startDate);
+        const endDateObj = new Date(editForm.endDate);
+        if (Number.isNaN(startDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
+            toast.error("Thời gian không hợp lệ");
+            return;
+        }
+        if (startDateObj < now) {
+            toast.error("Thời gian bắt đầu phải nằm trong tương lai");
+            return;
+        }
+        if (endDateObj <= startDateObj) {
+            toast.error("Thời gian kết thúc phải sau thời gian bắt đầu");
             return;
         }
         setUpdating(true);
@@ -279,13 +360,65 @@ export default function ManageAdsPage() {
                                     </div>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="img">Đường dẫn ảnh</Label>
-                                    <Input
-                                        id="img"
-                                        placeholder="Ví dụ: https://..."
-                                        value={form.imageUrl}
-                                        onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                                    <Label htmlFor="img">Ảnh quảng cáo</Label>
+                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <Input
+                                            id="img"
+                                            className="sm:flex-1"
+                                            placeholder="URL sẽ tự điền sau khi upload"
+                                            value={form.imageUrl}
+                                            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                                        />
+                                        <div className="flex gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                onClick={() => triggerImagePicker("create")}
+                                                disabled={createImageUploading}
+                                            >
+                                                {createImageUploading ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Đang tải...
+                                                    </>
+                                                ) : (
+                                                    "Upload ảnh"
+                                                )}
+                                            </Button>
+                                            {form.imageUrl && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() => setForm((prev) => ({ ...prev, imageUrl: "" }))}
+                                                    disabled={createImageUploading}
+                                                >
+                                                    Xóa
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <input
+                                        ref={createImageInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) => handleImageFileSelected(event, "create")}
                                     />
+                                    {form.imageUrl && (
+                                        <div className="h-36 w-full max-w-xs overflow-hidden rounded border">
+                                            <Image
+                                                src={form.imageUrl}
+                                                alt="Xem trước ảnh quảng cáo"
+                                                width={320}
+                                                height={320}
+                                                className="h-full w-full object-cover"
+                                                unoptimized
+                                            />
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Chỉ hỗ trợ 1 ảnh. Ảnh được tải lên Cloudinary và URL sẽ tự động điền.
+                                    </p>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -295,6 +428,7 @@ export default function ManageAdsPage() {
                                             <Calendar className="h-4 w-4 opacity-70" />
                                             <Input
                                                 type="datetime-local"
+                                                min={startMinLocal}
                                                 value={toLocalDatetime(form.startDate)}
                                                 onChange={(e) => setForm({ ...form, startDate: fromLocalDatetime(e.target.value) })}
                                             />
@@ -306,6 +440,7 @@ export default function ManageAdsPage() {
                                             <Calendar className="h-4 w-4 opacity-70" />
                                             <Input
                                                 type="datetime-local"
+                                                min={createEndMinLocal}
                                                 value={toLocalDatetime(form.endDate)}
                                                 onChange={(e) => setForm({ ...form, endDate: fromLocalDatetime(e.target.value) })}
                                             />
@@ -322,11 +457,11 @@ export default function ManageAdsPage() {
                                         setCreating(false);
                                         resetForm();
                                     }}
-                                    disabled={creating}
+                                    disabled={creating || createImageUploading}
                                 >
                                     Hủy
                                 </Button>
-                                <Button onClick={handleCreate} disabled={creating}>
+                                <Button onClick={handleCreate} disabled={creating || createImageUploading}>
                                     {creating ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -377,13 +512,65 @@ export default function ManageAdsPage() {
                             </div>
                         </div>
                         <div className="md:col-span-1 grid gap-2">
-                            <Label htmlFor="edit-img">Đường dẫn ảnh</Label>
-                            <Input
-                                id="edit-img"
-                                placeholder="Ví dụ: https://..."
-                                value={editForm.imageUrl}
-                                onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
+                            <Label htmlFor="edit-img">Ảnh quảng cáo</Label>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                <Input
+                                    id="edit-img"
+                                    className="sm:flex-1"
+                                    placeholder="URL sẽ tự điền sau khi upload"
+                                    value={editForm.imageUrl}
+                                    onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
+                                />
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => triggerImagePicker("edit")}
+                                        disabled={editImageUploading}
+                                    >
+                                        {editImageUploading ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Đang tải...
+                                            </>
+                                        ) : (
+                                            "Upload ảnh"
+                                        )}
+                                    </Button>
+                                    {editForm.imageUrl && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setEditForm((prev) => ({ ...prev, imageUrl: "" }))}
+                                            disabled={editImageUploading}
+                                        >
+                                            Xóa
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                            <input
+                                ref={editImageInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(event) => handleImageFileSelected(event, "edit")}
                             />
+                            {editForm.imageUrl && (
+                                <div className="h-36 w-full max-w-xs overflow-hidden rounded border">
+                                    <Image
+                                        src={editForm.imageUrl}
+                                        alt="Ảnh quảng cáo hiện tại"
+                                        width={320}
+                                        height={320}
+                                        className="h-full w-full object-cover"
+                                        unoptimized
+                                    />
+                                </div>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                                Chỉ hỗ trợ 1 ảnh. URL sẽ cập nhật sau khi upload lên Cloudinary.
+                            </p>
                         </div>
                         <div className="grid gap-2">
                             <Label>Thời gian bắt đầu</Label>
@@ -391,6 +578,7 @@ export default function ManageAdsPage() {
                                 <Calendar className="h-4 w-4 opacity-70" />
                                 <Input
                                     type="datetime-local"
+                                    min={startMinLocal}
                                     value={toLocalDatetime(editForm.startDate)}
                                     onChange={(e) => setEditForm({ ...editForm, startDate: fromLocalDatetime(e.target.value) })}
                                 />
@@ -402,6 +590,7 @@ export default function ManageAdsPage() {
                                 <Calendar className="h-4 w-4 opacity-70" />
                                 <Input
                                     type="datetime-local"
+                                    min={editEndMinLocal}
                                     value={toLocalDatetime(editForm.endDate)}
                                     onChange={(e) => setEditForm({ ...editForm, endDate: fromLocalDatetime(e.target.value) })}
                                 />
@@ -416,11 +605,11 @@ export default function ManageAdsPage() {
                                 setUpdating(false);
                                 resetEditForm();
                             }}
-                            disabled={updating}
+                            disabled={updating || editImageUploading}
                         >
                             Hủy
                         </Button>
-                        <Button onClick={handleUpdate} disabled={updating}>
+                        <Button onClick={handleUpdate} disabled={updating || editImageUploading}>
                             {updating ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -555,11 +744,13 @@ export default function ManageAdsPage() {
                                         <TableCell className="align-middle text-center">
                                             {ad.imageUrl ? (
                                                 <div className="mx-auto h-24 w-32 overflow-hidden rounded-md border bg-muted">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img
+                                                    <Image
                                                         src={ad.imageUrl}
                                                         alt={ad.title || "Advertisement image"}
+                                                        width={160}
+                                                        height={120}
                                                         className="h-full w-full object-cover"
+                                                        unoptimized
                                                     />
                                                 </div>
                                             ) : (
@@ -834,4 +1025,15 @@ function fromLocalDatetime(local: string) {
     const d = new Date(local);
     if (Number.isNaN(d.getTime())) return "";
     return d.toISOString();
+}
+
+function minFutureLocal(baseIso?: string) {
+    const now = new Date();
+    if (baseIso) {
+        const candidate = new Date(baseIso);
+        if (!Number.isNaN(candidate.getTime()) && candidate > now) {
+            return toLocalDatetime(candidate.toISOString());
+        }
+    }
+    return toLocalDatetime(now.toISOString());
 }
