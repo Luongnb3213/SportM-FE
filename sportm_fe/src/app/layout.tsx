@@ -1,12 +1,21 @@
 import "./globals.css";
 import { cookies } from "next/headers";
+import type { Metadata } from "next";
 import ReduxProvider from "@/lib/redux/provider";
 import { geistSans, geistMono, bigShoulders, openSans } from "@/styles/fonts";
 import ClientHydrator from "@/components/ClientHydrator";
 import type { User } from "@/lib/redux/features/auth/types";
 import { Toaster } from "sonner";
 import AuthSessionProvider from "@/components/auth/SessionProvider";
-export const metadata = { title: "SportM", description: "SportM Application" };
+export const metadata: Metadata = {
+    title: "SportM",
+    description: "SportM Application",
+    icons: {
+        icon: "/images/sportM.jpg",
+        shortcut: "/images/sportM.jpg",
+        apple: "/images/sportM.jpg",
+    },
+};
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
     const store = await cookies();
