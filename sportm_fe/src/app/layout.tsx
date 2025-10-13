@@ -7,6 +7,8 @@ import ClientHydrator from "@/components/ClientHydrator";
 import type { User } from "@/lib/redux/features/auth/types";
 import { Toaster } from "sonner";
 import AuthSessionProvider from "@/components/auth/SessionProvider";
+
+
 export const metadata: Metadata = {
     title: "SportM",
     description: "SportM Application",
