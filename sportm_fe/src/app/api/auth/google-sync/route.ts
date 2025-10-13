@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../[...nextauth]/route";
+import { authOptions } from "@/lib/auth/nextAuthOptions";
 
 const isProd = process.env.NODE_ENV === "production";
 const DEFAULT_MAX_AGE = 7 * 24 * 60 * 60;
