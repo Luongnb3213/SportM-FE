@@ -20,7 +20,7 @@ const SLIDES = [
         tag: "TỐI ƯU VẬN HÀNH",
         title:
             "Quản lý đặt sân, thanh toán và chăm sóc khách hàng trong một nơi duy nhất.",
-        cta1: { href: "/tinh-nang", label: "Xem tính năng" },
+        cta1: { href: "/about-us", label: "Xem tính năng" },
         cta2: { href: "/bang-gia", label: "Bảng giá" },
     },
 ];
