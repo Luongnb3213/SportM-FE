@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
+import { signOut } from "next-auth/react";
 import type { RootState } from "@/lib/redux/store";
 import { logoutClient } from "@/lib/redux/features/auth/authSlice";
 import { bigShoulders } from "@/styles/fonts";
@@ -73,8 +74,12 @@ export default function Header() {
     }, []);
 
     async function handleLogout() {
-        try { await fetch("/api/auth/logout", { method: "POST" }); } catch { }
-        finally {
+        try {
+            await Promise.allSettled([
+                fetch("/api/auth/logout", { method: "POST" }),
+                signOut({ redirect: false }),
+            ]);
+        } finally {
             dispatch(logoutClient());
             router.push("/login");
         }

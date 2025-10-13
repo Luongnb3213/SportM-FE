@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { bigShoulders, openSans } from "@/styles/fonts";
-import { Mail, Lock, LogIn } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { Mail, Lock, LogIn, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
     const dispatch = useDispatch<AppDispatch>();
@@ -25,6 +26,8 @@ export default function LoginPage() {
     const [remember, setRemember] = useState(true);
 
     const [localError, setLocalError] = useState<string | null>(null);
+    const [googleError, setGoogleError] = useState<string | null>(null);
+    const [googleLoading, setGoogleLoading] = useState(false);
     function isValidEmail(value: string) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     }
@@ -41,6 +44,25 @@ export default function LoginPage() {
         const action = await dispatch(login({ email, password, remember }));
         if (login.fulfilled.match(action)) {
             router.push("/"); // chuyển trang sau login thành công
+        }
+    }
+
+    async function handleGoogleSignIn() {
+        try {
+            setGoogleError(null);
+            setGoogleLoading(true);
+            const result = await signIn("google", { callbackUrl: "/", redirect: false });
+            if (result?.error) {
+                setGoogleError("Không thể đăng nhập bằng Google. Vui lòng thử lại.");
+                setGoogleLoading(false);
+                return;
+            }
+            if (result?.url) {
+                window.location.href = result.url;
+            }
+        } catch {
+            setGoogleError("Có lỗi xảy ra khi kết nối Google. Vui lòng thử lại.");
+            setGoogleLoading(false);
         }
     }
 
@@ -160,21 +182,34 @@ export default function LoginPage() {
 
                                 <Separator className="my-4" />
 
-                                {/* Google button (placeholder) */}
+                                {/* Google OAuth button */}
                                 <Button
                                     type="button"
                                     variant="secondary"
                                     className="h-10 w-full rounded-full bg-neutral-900 text-white hover:bg-neutral-800"
-                                    disabled={loading}
+                                    disabled={loading || googleLoading}
+                                    onClick={handleGoogleSignIn}
                                 >
-                                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path
-                                            d="M21.35 11.1h-8.9v2.98h5.2c-.23 1.36-1.57 3.98-5.2 3.98-3.13 0-5.68-2.59-5.68-5.8s2.55-5.8 5.68-5.8c1.78 0 2.97.76 3.65 1.41l2.49-2.4C17.46 3.97 15.61 3 13.25 3 8.59 3 4.75 6.86 4.75 11.5S8.59 20 13.25 20c7.95 0 8.1-6.9 7.77-8.9z"
-                                            fill="currentColor"
-                                        />
-                                    </svg>
-                                    Or sign in with Google
+                                    {googleLoading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Đang chuyển hướng tới Google...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path
+                                                    d="M21.35 11.1h-8.9v2.98h5.2c-.23 1.36-1.57 3.98-5.2 3.98-3.13 0-5.68-2.59-5.68-5.8s2.55-5.8 5.68-5.8c1.78 0 2.97.76 3.65 1.41l2.49-2.4C17.46 3.97 15.61 3 13.25 3 8.59 3 4.75 6.86 4.75 11.5S8.59 20 13.25 20c7.95 0 8.1-6.9 7.77-8.9z"
+                                                    fill="currentColor"
+                                                />
+                                            </svg>
+                                            Đăng nhập với Google
+                                        </>
+                                    )}
                                 </Button>
+                                {googleError && (
+                                    <p className="text-center text-sm text-red-600">{googleError}</p>
+                                )}
                             </form>
                         </div>
                     </div>
