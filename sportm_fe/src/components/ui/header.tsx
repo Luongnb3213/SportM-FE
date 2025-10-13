@@ -45,6 +45,7 @@ export default function Header() {
 
     const clientNav = [
         { href: "/", label: "TRANG CHỦ" },
+        { href: "/bang-gia", label: "BẢNG GIÁ" },
         { href: "/about-us", label: "VỀ CHÚNG TÔI" },
     ];
 
@@ -91,7 +92,6 @@ export default function Header() {
                 "fixed inset-x-0 top-0 z-50 transition-transfor m duration-300 will-change-transform ",
                 hidden ? "-translate-y-full" : "translate-y-0",
                 elevated ? "border-b border-white/10" : "",
-                // mobile-only: bg trong suốt + chữ trắng
                 "bg-transparent text-white",
                 "leading-[150%] font-semibold",
                 bigShoulders.className
