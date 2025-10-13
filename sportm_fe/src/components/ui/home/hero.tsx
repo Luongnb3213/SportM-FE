@@ -13,14 +13,14 @@ const SLIDES = [
         tag: "PHẦN MỀM CHUYÊN BIỆT",
         title:
             "Đặt Lịch Trực Tuyến & Quản Lý Sân Pickleball – Cầu Lông – Tennis – Bóng Đá!",
-        cta1: { href: "/dat-lich", label: "Bắt đầu ngay" },
-        cta2: { href: "/lien-he", label: "Liên hệ tư vấn" },
+        cta1: { href: "/login", label: "Bắt đầu ngay" },
+        cta2: { href: "/about-us", label: "Liên hệ tư vấn" },
     },
     {
         tag: "TỐI ƯU VẬN HÀNH",
         title:
             "Quản lý đặt sân, thanh toán và chăm sóc khách hàng trong một nơi duy nhất.",
-        cta1: { href: "/tinh-nang", label: "Xem tính năng" },
+        cta1: { href: "/about-us", label: "Xem tính năng" },
         cta2: { href: "/bang-gia", label: "Bảng giá" },
     },
 ];
