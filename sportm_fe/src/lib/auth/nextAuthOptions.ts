@@ -143,12 +143,10 @@ export const authOptions: NextAuthOptions = {
                     backendAuth?: {
                         accessToken: string;
                         user: BackendAuthSuccess["data"]["user"];
-                        claims?: Record<string, unknown> | null;
                     };
                 }).backendAuth = {
                     accessToken: json.data.access,
-                    user: backendUserRaw,
-                    claims,
+                    user: json.data.user,
                 };
 
                 return true;
