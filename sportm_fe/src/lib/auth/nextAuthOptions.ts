@@ -143,10 +143,12 @@ export const authOptions: NextAuthOptions = {
                     backendAuth?: {
                         accessToken: string;
                         user: BackendAuthSuccess["data"]["user"];
+                        claims?: Record<string, unknown> | null;
                     };
                 }).backendAuth = {
                     accessToken: json.data.access,
-                    user: json.data.user,
+                    user: backendUserRaw,
+                    claims,
                 };
 
                 return true;
@@ -174,7 +176,13 @@ export const authOptions: NextAuthOptions = {
             })?.backendAuth;
 
             if (backendAuth) {
-                token.backend = backendAuth;
+                token.backend = {
+                    accessToken: backendAuth.accessToken,
+                    user: backendAuth.user,
+                    claims: backendAuth.claims ?? decodeJwtPayload(backendAuth.accessToken),
+                };
+            } else if (token.backend && !token.backend.claims && token.backend.accessToken) {
+                token.backend.claims = decodeJwtPayload(token.backend.accessToken);
             }
 
             const backendUser = token.backend?.user;
