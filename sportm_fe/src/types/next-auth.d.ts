@@ -10,6 +10,7 @@ declare module "next-auth" {
         backendAccessToken?: string;
         backendUser?: Partial<BackendUser> & {
             id?: string;
+            userId?: string;
             email?: string;
             fullName?: string | null;
             role?: Role;
@@ -30,6 +31,7 @@ declare module "next-auth" {
             accessToken: string;
             user: Partial<BackendUser> & {
                 id?: string;
+                userId?: string;
                 email?: string;
                 fullName?: string | null;
                 role?: Role;
@@ -37,6 +39,7 @@ declare module "next-auth" {
                 imgUrl?: string | null;
                 avatar?: string | null;
             };
+            claims?: Record<string, unknown> | null;
         };
     }
 }
@@ -51,6 +54,7 @@ declare module "next-auth/jwt" {
             accessToken: string;
             user: Partial<BackendUser> & {
                 id?: string;
+                userId?: string;
                 email?: string;
                 fullName?: string | null;
                 role?: Role;
@@ -58,6 +62,7 @@ declare module "next-auth/jwt" {
                 imgUrl?: string | null;
                 avatar?: string | null;
             };
+            claims?: Record<string, unknown> | null;
         };
         user?: {
             id?: string;

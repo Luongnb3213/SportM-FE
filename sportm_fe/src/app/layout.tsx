@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     },
 };
 
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
     const store = await cookies();
     const raw = store.get("user")?.value;

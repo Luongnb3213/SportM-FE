@@ -42,7 +42,7 @@ export default function VerifyOtpBlock({
         dispatch(clearAuthError());
         const r = await dispatch(verifyOtp({ email, code }));
         if (verifyOtp.fulfilled.match(r)) {
-            onSuccess?.();            // 👈 bắn toast nếu truyền vào
+            onSuccess?.();           
             router.push(nextHref);
         }
     }

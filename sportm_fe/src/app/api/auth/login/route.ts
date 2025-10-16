@@ -5,6 +5,75 @@ const BE_URL = `${API_BASE}/auth/signin`;
 const isProd = process.env.NODE_ENV === "production";
 
 // ==== helpers ====
+function base64UrlDecode(input: string): string {
+    const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = normalized.length % 4;
+    const padded = pad ? normalized + "=".repeat(4 - pad) : normalized;
+    return Buffer.from(padded, "base64").toString("utf8");
+}
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    try {
+        const payload = base64UrlDecode(parts[1]);
+        const json = JSON.parse(payload) as Record<string, unknown>;
+        return json;
+    } catch {
+        return null;
+    }
+}
+
+function extractId(claims: Record<string, unknown>): string | undefined {
+    const keys = ["userId", "id", "sub"];
+    for (const key of keys) {
+        const value = claims[key];
+        if (typeof value === "string" && value) return value;
+    }
+    return undefined;
+}
+
+function extractUserFromJwt(token: string | undefined) {
+    if (!token) return null;
+    const claims = decodeJwtPayload(token);
+    if (!claims) return null;
+
+    const id = extractId(claims);
+    const email = typeof claims.email === "string" ? claims.email : undefined;
+    const fullName =
+        typeof claims.fullName === "string"
+            ? claims.fullName
+            : typeof claims.name === "string"
+                ? claims.name
+                : undefined;
+    const role =
+        typeof claims.role === "string"
+            ? claims.role
+            : undefined;
+    const avatarUrl =
+        typeof claims.avatarUrl === "string"
+            ? claims.avatarUrl
+            : typeof claims.imgUrl === "string"
+                ? claims.imgUrl
+                : undefined;
+    const phoneNumber =
+        typeof claims.phoneNumber === "string"
+            ? claims.phoneNumber
+            : typeof claims.phone === "string"
+                ? claims.phone
+                : undefined;
+
+    return {
+        id,
+        userId: id,
+        email,
+        fullName,
+        role,
+        avatarUrl,
+        phoneNumber,
+    };
+}
+
 function cookieString({
     name,
     value,
@@ -83,6 +152,32 @@ export async function POST(req: Request) {
         const data = json.data;
         const maxAge = (remember ? 7 : 1) * 24 * 60 * 60;
 
+        const jwtUser = extractUserFromJwt(data.access);
+        const backendUser = (data.user ?? {}) as Record<string, unknown>;
+        const cookieUser = {
+            ...backendUser,
+        };
+
+        const idFromBackend =
+            (typeof backendUser.userId === "string" && backendUser.userId) ||
+            (typeof backendUser.id === "string" && backendUser.id);
+        const idFromJwt = jwtUser?.userId;
+
+        if (!("userId" in cookieUser) || typeof cookieUser.userId !== "string" || !cookieUser.userId) {
+            if (idFromBackend) cookieUser.userId = idFromBackend;
+            else if (idFromJwt) cookieUser.userId = idFromJwt;
+        }
+        if (!("id" in cookieUser) || typeof cookieUser.id !== "string" || !cookieUser.id) {
+            if (idFromBackend) cookieUser.id = idFromBackend;
+            else if (idFromJwt) cookieUser.id = idFromJwt;
+        }
+        if (!cookieUser.email && jwtUser?.email) cookieUser.email = jwtUser.email;
+        if (!cookieUser.fullName && jwtUser?.fullName) cookieUser.fullName = jwtUser.fullName;
+        if (!cookieUser.role && jwtUser?.role) cookieUser.role = jwtUser.role;
+        if (!cookieUser.avatarUrl && jwtUser?.avatarUrl) cookieUser.avatarUrl = jwtUser.avatarUrl;
+        if (!cookieUser.phoneNumber && jwtUser?.phoneNumber) cookieUser.phoneNumber = jwtUser.phoneNumber;
+        if (!cookieUser.phone && jwtUser?.phoneNumber) cookieUser.phone = jwtUser.phoneNumber;
+
         const response = NextResponse.json({ data, status: "success" }, { status: 200 });
 
         response.headers.append("Set-Cookie", cookieString({
@@ -95,7 +190,7 @@ export async function POST(req: Request) {
 
         response.headers.append("Set-Cookie", cookieString({
             name: "user",
-            value: encodeURIComponent(JSON.stringify(data.user)),
+            value: encodeURIComponent(JSON.stringify(cookieUser)),
             maxAge,
             httpOnly: false,
             sameSite: "lax",
