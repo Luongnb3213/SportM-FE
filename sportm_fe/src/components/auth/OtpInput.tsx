@@ -46,9 +46,19 @@ export default function OtpInput({ length = 6, onChange }: OtpInputProps) {
                     ref={(el) => { refs.current[i] = el; }}
                     value={val}
                     onChange={(e) => {
-                        const v = e.target.value.replace(/\D/g, "").slice(0, 1);
-                        setAt(i, v);
-                        if (v && i < length - 1) refs.current[i + 1]?.focus();
+                        const raw = e.target.value.replace(/\D/g, "");
+                        if (!raw) {
+                            setAt(i, "");
+                            return;
+                        }
+                        if (raw.length === 1) {
+                            setAt(i, raw);
+                            if (i < length - 1) refs.current[i + 1]?.focus();
+                            return;
+                        }
+                        pasteAt(i, raw);
+                        const lastIdx = Math.min(i + raw.length - 1, length - 1);
+                        window.setTimeout(() => refs.current[lastIdx]?.focus(), 0);
                     }}
                     onKeyDown={(e) => {
                         if (e.key === "Backspace" && !vals[i] && i > 0) {
