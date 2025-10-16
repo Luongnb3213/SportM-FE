@@ -20,6 +20,7 @@ type BackendAuthSuccess = {
         access: string;
         user: Partial<BackendUser> & {
             id?: string;
+            userId?: string;
             email?: string;
             fullName?: string | null;
             role?: Role;
@@ -29,6 +30,34 @@ type BackendAuthSuccess = {
         };
     };
 };
+
+function base64UrlDecode(input: string) {
+    const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = normalized.length % 4;
+    const padded = pad ? normalized + "=".repeat(4 - pad) : normalized;
+    return Buffer.from(padded, "base64").toString("utf8");
+}
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    try {
+        const payload = base64UrlDecode(parts[1]);
+        return JSON.parse(payload) as Record<string, unknown>;
+    } catch {
+        return null;
+    }
+}
+
+function extractIdFromClaims(claims: Record<string, unknown> | null | undefined) {
+    if (!claims) return undefined;
+    const candidates = ["userId", "id", "sub"];
+    for (const key of candidates) {
+        const value = claims[key];
+        if (typeof value === "string" && value) return value;
+    }
+    return undefined;
+}
 
 function extractPicture(profile: unknown, fallback?: string | null) {
     if (typeof profile === "object" && profile && "picture" in profile) {
@@ -96,14 +125,30 @@ export const authOptions: NextAuthOptions = {
                     return false;
                 }
 
+                const backendUserRaw = { ...json.data.user } as BackendAuthSuccess["data"]["user"] & { userId?: string };
+                const claims = decodeJwtPayload(json.data.access);
+                const claimId = extractIdFromClaims(claims);
+                const resolvedBackendId =
+                    claimId ??
+                    backendUserRaw.userId ??
+                    backendUserRaw.id ??
+                    backendUserRaw.email ??
+                    payload.email;
+                backendUserRaw.id = resolvedBackendId;
+                if (backendUserRaw.userId === undefined) {
+                    (backendUserRaw as { userId: string }).userId = resolvedBackendId;
+                }
+
                 (user as typeof user & {
                     backendAuth?: {
                         accessToken: string;
                         user: BackendAuthSuccess["data"]["user"];
+                        claims?: Record<string, unknown> | null;
                     };
                 }).backendAuth = {
                     accessToken: json.data.access,
-                    user: json.data.user,
+                    user: backendUserRaw,
+                    claims,
                 };
 
                 return true;
@@ -126,11 +171,18 @@ export const authOptions: NextAuthOptions = {
                 backendAuth?: {
                     accessToken: string;
                     user: BackendAuthSuccess["data"]["user"];
+                    claims?: Record<string, unknown> | null;
                 };
             })?.backendAuth;
 
             if (backendAuth) {
-                token.backend = backendAuth;
+                token.backend = {
+                    accessToken: backendAuth.accessToken,
+                    user: backendAuth.user,
+                    claims: backendAuth.claims ?? decodeJwtPayload(backendAuth.accessToken),
+                };
+            } else if (token.backend && !token.backend.claims && token.backend.accessToken) {
+                token.backend.claims = decodeJwtPayload(token.backend.accessToken);
             }
 
             const backendUser = token.backend?.user;
@@ -147,8 +199,16 @@ export const authOptions: NextAuthOptions = {
                     null;
 
                 const resolvedEmail = backendUser.email ?? token.user?.email ?? "";
+                const claimId = extractIdFromClaims(token.backend?.claims);
+                const resolvedId =
+                    claimId ??
+                    backendUser.userId ??
+                    backendUser.id ??
+                    resolvedEmail ??
+                    token.user?.id ??
+                    "";
                 token.user = {
-                    id: backendUser.id ?? resolvedEmail ?? token.user?.id ?? "",
+                    id: resolvedId,
                     email: resolvedEmail,
                     name: fullName,
                     image,
@@ -171,9 +231,20 @@ export const authOptions: NextAuthOptions = {
             if (token.backend?.user) {
                 const backendUser = token.backend.user;
                 session.backendUser = backendUser;
+                if (!session.backendUser.userId && session.backendUser.id) {
+                    session.backendUser.userId = session.backendUser.id;
+                }
+                const claimId = extractIdFromClaims(token.backend.claims);
+                const backendId =
+                    claimId ??
+                    backendUser.userId ??
+                    backendUser.id ??
+                    session.user?.id ??
+                    backendUser.email ??
+                    "";
                 session.user = {
                     ...session.user,
-                    id: backendUser.id ?? session.user?.id ?? "",
+                    id: backendId,
                     email: backendUser.email ?? session.user?.email ?? "",
                     name: backendUser.fullName ?? session.user?.name ?? backendUser.email ?? null,
                     image:

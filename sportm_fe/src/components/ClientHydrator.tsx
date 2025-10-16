@@ -22,17 +22,33 @@ function mapSessionUserToReduxUser(sessionUser: {
 }
 
 function mapBackendUserToReduxUser(backendUser: Partial<User> & {
+    userId?: string;
+    phoneNumber?: string | null;
     imgUrl?: string | null;
     avatar?: string | null;
 }): User {
     const email = backendUser.email ?? "";
     return {
-        id: backendUser.id ?? email,
+        id: backendUser.userId ?? backendUser.id ?? email,
         email,
         fullName: backendUser.fullName ?? email,
-        phone: backendUser.phone ?? undefined,
+        phone: backendUser.phone ?? backendUser.phoneNumber ?? undefined,
         role: backendUser.role ?? "CLIENT",
     };
+}
+
+function isBackendUserShape(candidate: unknown): candidate is Partial<User> & {
+    userId?: string;
+    phoneNumber?: string | null;
+} {
+    if (!candidate || typeof candidate !== "object") return false;
+    const obj = candidate as Record<string, unknown>;
+    return (
+        typeof obj.userId === "string" ||
+        typeof obj.phoneNumber === "string" ||
+        typeof obj.documentUrl === "string" ||
+        typeof obj.avatarUrl === "string"
+    );
 }
 
 export default function ClientHydrator({ user }: { user: User | null }) {
@@ -41,7 +57,16 @@ export default function ClientHydrator({ user }: { user: User | null }) {
     const syncedTokenRef = useRef<string | null>(null);
 
     useEffect(() => {
-        dispatch(setUserFromCookie(user));
+        if (!user) {
+            dispatch(setUserFromCookie(null));
+            return;
+        }
+        const maybeBackend = user as unknown;
+        if (isBackendUserShape(maybeBackend)) {
+            dispatch(setUserFromCookie(mapBackendUserToReduxUser(maybeBackend)));
+        } else {
+            dispatch(setUserFromCookie(user));
+        }
     }, [dispatch, user]);
 
     useEffect(() => {
