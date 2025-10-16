@@ -138,9 +138,14 @@ export default function Header() {
                     <div className="hidden md:flex items-center justify-end gap-4 lg:gap-6">
                         {isAuthenticated && user ? (
                             <>
+                                <Link
+                                    href="/my-profile"
+                                    className="flex items-center gap-2 uppercase font-semibold text-[22px] hover:underline"
+                                >
                                     <User className="h-5 w-5" />
                                     <span className="hidden lg:inline">{user.fullName ?? "TÀI KHOẢN"}</span>
                                     <span className="lg:hidden">TÀI KHOẢN</span>
+                                </Link>
                                 <Button
                                     variant="ghost"
                                     className="uppercase font-semibold hover:underline text-[22px] lg:text-[22px]"
@@ -181,7 +186,7 @@ export default function Header() {
                                     {isAuthenticated && user ? (
                                         <>
                                             <Link
-                                                href="/account"
+                                                href="/my-profile"
                                                 className="flex items-center gap-2 font-semibold uppercase text-base"
                                             >
                                                 <User className="h-5 w-5" />

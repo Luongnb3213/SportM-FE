@@ -53,11 +53,11 @@ function SheetContent({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
-  title?: string
+  title?: React.ReactNode
   visuallyHiddenTitle?: boolean
 }) {
-  // Nếu không có title, thêm aria-label để thỏa a11y
-  const ariaProps = title ? {} : { "aria-label": "Sheet panel" as const }
+  const resolvedTitle = title ?? "Sheet panel"
+  const hideTitleVisually = visuallyHiddenTitle || !title
 
   return (
     <SheetPortal>
@@ -76,18 +76,14 @@ function SheetContent({
           "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t",
           className
         )}
-        {...ariaProps}
         {...props}
       >
-        {/* Title ẩn cho screen reader nếu có truyền vào */}
-        {title ? (
-          <SheetPrimitive.Title
-            data-slot="sheet-title"
-            className={cn("text-foreground font-semibold", visuallyHiddenTitle && "sr-only")}
-          >
-            {title}
-          </SheetPrimitive.Title>
-        ) : null}
+        <SheetPrimitive.Title
+          data-slot="sheet-title"
+          className={cn("text-foreground font-semibold", hideTitleVisually && "sr-only")}
+        >
+          {resolvedTitle}
+        </SheetPrimitive.Title>
 
         {children}
 

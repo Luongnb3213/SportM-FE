@@ -1,10 +1,7 @@
 "use client";
 
-import { PartyPopper, Smile, Rocket } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useMemo } from "react";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/lib/redux/store";
+import { PartyPopper, Smile } from "lucide-react";
+import { useEffect } from "react";
 
 export default function ManageHome() {
     useEffect(() => {
@@ -17,12 +14,6 @@ export default function ManageHome() {
             });
         });
     }, []);
-
-    const role = useSelector((state: RootState) => state.auth.user?.role ?? null);
-    const ctaHref = useMemo(() => {
-        if (role === "OWNER") return "/manage/fields";
-        return "/manage/users";
-    }, [role]);
 
     return (
         <div className="flex flex-col items-center justify-center h-full text-center space-y-8 relative overflow-hidden">
@@ -44,17 +35,6 @@ export default function ManageHome() {
                 <p className="text-base text-gray-500 mb-6">
                     Đây là không gian quyền lực của bạn. Quản lý, kiểm soát và phát triển mọi thứ theo cách thật thông minh nhé 🚀
                 </p>
-
-                {/* CTA */}
-                <Link
-                    href={ctaHref}
-                    className="inline-flex items-center gap-2 px-6 py-3 
-                         bg-gradient-to-r from-purple-500 via-pink-500 to-red-500
-                         text-white font-semibold rounded-xl shadow-lg 
-                         hover:shadow-pink-400/50 hover:scale-105 transition-all duration-300"
-                >
-                    Khám phá ngay <Rocket className="h-5 w-5" />
-                </Link>
             </div>
 
             {/* Glow effect */}

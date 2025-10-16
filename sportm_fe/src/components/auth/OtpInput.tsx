@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type OtpInputProps = {
     length?: number;                 // mặc định 6
@@ -11,11 +11,31 @@ export default function OtpInput({ length = 6, onChange }: OtpInputProps) {
     const [vals, setVals] = useState<string[]>(Array.from({ length }, () => ""));
     const refs = useRef<Array<HTMLInputElement | null>>([]);
 
-    const setAt = (i: number, v: string) => {
-        const next = [...vals];
-        next[i] = v;
-        setVals(next);
-        onChange?.(next.join(""));
+    useEffect(() => {
+        onChange?.(vals.join(""));
+    }, [vals, onChange]);
+
+    useEffect(() => {
+        // Nếu prop length thay đổi, chuẩn hóa mảng
+        setVals((prev) => Array.from({ length }, (_, idx) => prev[idx] ?? ""));
+    }, [length]);
+
+    const setAt = (idx: number, value: string) => {
+        setVals((prev) => {
+            const next = Array.from({ length }, (_, i) => prev[i] ?? "");
+            next[idx] = value;
+            return next;
+        });
+    };
+
+    const pasteAt = (start: number, data: string) => {
+        setVals((prev) => {
+            const next = Array.from({ length }, (_, i) => prev[i] ?? "");
+            for (let offset = 0; offset < data.length && start + offset < length; offset += 1) {
+                next[start + offset] = data[offset];
+            }
+            return next;
+        });
     };
 
     return (
@@ -23,7 +43,7 @@ export default function OtpInput({ length = 6, onChange }: OtpInputProps) {
             {vals.map((val, i) => (
                 <input
                     key={i}
-                    ref={(el) => { refs.current[i] = el; }}  
+                    ref={(el) => { refs.current[i] = el; }}
                     value={val}
                     onChange={(e) => {
                         const v = e.target.value.replace(/\D/g, "").slice(0, 1);
@@ -43,12 +63,9 @@ export default function OtpInput({ length = 6, onChange }: OtpInputProps) {
                         const data = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
                         if (!data) return;
                         e.preventDefault();
-                        const next = [...vals];
-                        for (let k = 0; k < data.length; k++) next[i + k] = data[k] ?? "";
-                        setVals(next);
-                        onChange?.(next.join(""));
+                        pasteAt(i, data);
                         const lastIdx = Math.min(i + data.length - 1, length - 1);
-                        refs.current[lastIdx]?.focus();
+                        window.setTimeout(() => refs.current[lastIdx]?.focus(), 0);
                     }}
                     inputMode="numeric"
                     maxLength={1}

@@ -5,6 +5,7 @@ import { geistSans, geistMono, bigShoulders, openSans } from "@/styles/fonts";
 import ClientHydrator from "@/components/ClientHydrator";
 import type { User } from "@/lib/redux/features/auth/types";
 import { Toaster } from "sonner";
+import AuthSessionProvider from "@/components/auth/SessionProvider";
 export const metadata = { title: "SportM", description: "SportM Application" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,11 +22,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             className={`${geistSans.variable} ${geistMono.variable} ${bigShoulders.variable} ${openSans.variable}`}
         >
             <body className={`min-h-screen ${bigShoulders.className}`}>
-                <ReduxProvider>
-                    <ClientHydrator user={user} />
-                    {children}
-                    <Toaster richColors position="top-right" />
-                </ReduxProvider>
+                <AuthSessionProvider>
+                    <ReduxProvider>
+                        <ClientHydrator user={user} />
+                        {children}
+                        <Toaster richColors position="top-right" />
+                    </ReduxProvider>
+                </AuthSessionProvider>
             </body>
         </html>
     );
