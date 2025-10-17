@@ -6,6 +6,7 @@ import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef, useState, useEffect } from "react";
+import { Facebook, Instagram } from "lucide-react";
 import { bigShoulders } from "@/styles/fonts";
 
 const SLIDES = [
@@ -121,35 +122,38 @@ export default function Hero() {
                 </div>
 
                 {/* ==== SOCIAL RAIL – CỐ ĐỊNH, KHÔNG DÍNH SLIDER ==== */}
-                <div className="hidden md:flex absolute left-6 lg:left-60 top-1/2 -translate-y-1/2 z-20 
-                flex-col justify-center items-center gap-3 text-white">
+                <div
+                    className="hidden md:flex absolute left-6 lg:left-60 top-1/2 -translate-y-1/2 z-20 
+                flex-col justify-center items-center gap-4 text-white"
+                >
                     <span
                         className={`${bigShoulders.className} [writing-mode:vertical-rl] rotate-360 uppercase tracking-[0.2em] text-[20px] font-semibold text-white drop-shadow`}
                     >
                         THEO DÕI CHÚNG TÔI TẠI
                     </span>
-                    <a
-                        href="https://instagram.com/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Instagram"
-                        className="opacity-80 hover:opacity-100 transition-opacity"
-                    >
-                        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current drop-shadow">
-                            <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm10 2H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm-5 4a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6zM18.5 6.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z" />
-                        </svg>
-                    </a>
-                    <a
-                        href="https://instagram.com/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Instagram"
-                        className="opacity-80 hover:opacity-100 transition-opacity"
-                    >
-                        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current drop-shadow">
-                            <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm10 2H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm-5 4a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6zM18.5 6.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z" />
-                        </svg>
-                    </a>
+                    {[
+                        {
+                            href: "https://www.facebook.com/sportm9898?mibextid=wwXIfr&rdid=9izKWmzxj1gzlMyv&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19uNAkfENz%2F%3Fmibextid%3DwwXIfr",
+                            label: "Facebook",
+                            icon: Facebook,
+                        },
+                        {
+                            href: "https://www.instagram.com/sportm_booking?igsh=MXRvYW0yZzYzNHky&fbclid=IwY2xjawNdk8lleHRuA2FlbQIxMABicmlkETFydW1qVzZKWVIweEhqYlpXAR7KHFjl86WTrQtYbLgioi0WcYHEzt6nqdJ6I8OqzY-lPcgkAA2pxPNx0K1MGg_aem_y2KBlRKCvNVSJbyfM2lf0A",
+                            label: "Instagram",
+                            icon: Instagram,
+                        },
+                    ].map(({ href, label, icon: Icon }) => (
+                        <Link
+                            key={href}
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label={label}
+                            className="transition-opacity hover:opacity-100 opacity-80 text-white"
+                        >
+                            <Icon className="size-6 drop-shadow" />
+                        </Link>
+                    ))}
                 </div>
 
                 {/* ==== RIGHT NUMBER RAIL (desktop) ==== */}

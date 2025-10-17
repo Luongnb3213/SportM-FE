@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Phone, MapPin, Facebook, Youtube } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram } from "lucide-react";
+import TikTokIcon from "@/components/icons/TikTokIcon";
 import { bigShoulders } from "@/styles/fonts";
 
 const quickLinks = [
@@ -43,8 +44,21 @@ export default function Footer() {
                             </Link>
                             <div className="flex gap-2 text-slate-200">
                                 {[
-                                    { href: "https://facebook.com", label: "Facebook", icon: Facebook },
-                                    { href: "https://youtube.com", label: "YouTube", icon: Youtube },
+                                    {
+                                        href: "https://www.facebook.com/sportm9898?mibextid=wwXIfr&rdid=9izKWmzxj1gzlMyv&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19uNAkfENz%2F%3Fmibextid%3DwwXIfr",
+                                        label: "Facebook",
+                                        icon: Facebook,
+                                    },
+                                    {
+                                        href: "https://www.tiktok.com/@sportmde?_t=ZS-90arDbTUtD6&_r=1&fbclid=IwY2xjawNdk7lleHRuA2FlbQIxMABicmlkETFydW1qVzZKWVIweEhqYlpXAR70nGTb0JrqWGXMv8UZxM2V_E2tFjoyDDrnxd0KuoDIwCRpTn8ieiV17fBDyg_aem_PgTa7-SofokmEN58vmEb8w",
+                                        label: "TikTok",
+                                        icon: TikTokIcon,
+                                    },
+                                    {
+                                        href: "https://www.instagram.com/sportm_booking?igsh=MXRvYW0yZzYzNHky&fbclid=IwY2xjawNdk8lleHRuA2FlbQIxMABicmlkETFydW1qVzZKWVIweEhqYlpXAR7KHFjl86WTrQtYbLgioi0WcYHEzt6nqdJ6I8OqzY-lPcgkAA2pxPNx0K1MGg_aem_y2KBlRKCvNVSJbyfM2lf0A",
+                                        label: "Instagram",
+                                        icon: Instagram,
+                                    },
                                 ].map(({ href, label, icon: Icon }) => (
                                     <Link
                                         key={href}
