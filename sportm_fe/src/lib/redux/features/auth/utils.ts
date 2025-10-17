@@ -31,12 +31,35 @@ function isRecord(x: unknown): x is Record<string, unknown> {
 }
 
 /** Lấy thông điệp lỗi hữu ích từ payload JSON */
-export function getErrorMessage(data: unknown, fallback = "Request failed"): string {
-    if (!data) return fallback;
-    if (typeof data === "string") return data;
-    if (isRecord(data)) {
-        if (typeof data.error === "string" && data.error) return data.error;
-        if (typeof data.message === "string" && data.message) return data.message;
+function extractMessage(value: unknown, depth = 0): string | undefined {
+    if (depth > 3 || value == null) return undefined;
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        return trimmed || undefined;
     }
-    return fallback;
+    if (Array.isArray(value)) {
+        for (const item of value) {
+            const found = extractMessage(item, depth + 1);
+            if (found) return found;
+        }
+        return undefined;
+    }
+    if (isRecord(value)) {
+        const priorityKeys = ["message", "error", "data", "detail"];
+        for (const key of priorityKeys) {
+            if (key in value) {
+                const found = extractMessage(value[key], depth + 1);
+                if (found) return found;
+            }
+        }
+        for (const val of Object.values(value)) {
+            const found = extractMessage(val, depth + 1);
+            if (found) return found;
+        }
+    }
+    return undefined;
+}
+
+export function getErrorMessage(data: unknown, fallback = "Request failed"): string {
+    return extractMessage(data) ?? fallback;
 }

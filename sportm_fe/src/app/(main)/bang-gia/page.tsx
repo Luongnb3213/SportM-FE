@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Facebook, Instagram } from "lucide-react";
+import TikTokIcon from "@/components/icons/TikTokIcon";
 import {
     Dialog,
     DialogContent,
@@ -18,6 +20,27 @@ type Subscription = {
 };
 
 const API_ENDPOINT = "https://sportmbe.onrender.com/subcription";
+
+const contactLinks = [
+    {
+        href: "https://www.facebook.com/sportm9898?mibextid=wwXIfr&rdid=9izKWmzxj1gzlMyv&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19uNAkfENz%2F%3Fmibextid%3DwwXIfr",
+        label: "Facebook",
+        description: "Trao đổi trực tiếp với đội ngũ SportM qua Facebook.",
+        icon: Facebook,
+    },
+    {
+        href: "https://www.tiktok.com/@sportmde?_t=ZS-90arDbTUtD6&_r=1&fbclid=IwY2xjawNdk7lleHRuA2FlbQIxMABicmlkETFydW1qVzZKWVIweEhqYlpXAR70nGTb0JrqWGXMv8UZxM2V_E2tFjoyDDrnxd0KuoDIwCRpTn8ieiV17fBDyg_aem_PgTa7-SofokmEN58vmEb8w",
+        label: "TikTok",
+        description: "Theo dõi cập nhật và inbox nhanh trên TikTok.",
+        icon: TikTokIcon,
+    },
+    {
+        href: "https://www.instagram.com/sportm_booking?igsh=MXRvYW0yZzYzNHky&fbclid=IwY2xjawNdk8lleHRuA2FlbQIxMABicmlkETFydW1qVzZKWVIweEhqYlpXAR7KHFjl86WTrQtYbLgioi0WcYHEzt6nqdJ6I8OqzY-lPcgkAA2pxPNx0K1MGg_aem_y2KBlRKCvNVSJbyfM2lf0A",
+        label: "Instagram",
+        description: "Nhắn tin cho SportM trên Instagram.",
+        icon: Instagram,
+    },
+];
 
 async function fetchSubscriptions(): Promise<Subscription[]> {
     try {
@@ -99,12 +122,46 @@ export default async function PricingPage() {
 
                                 <div className="mt-auto pt-8">
                                     <div className="flex flex-col gap-3 sm:flex-row">
-                                        <a
-                                            href="mailto:contact@sportm.vn"
-                                            className="inline-flex items-center justify-center rounded-full bg-blue-500 px-6 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-blue-400"
-                                        >
-                                            Liên hệ tư vấn
-                                        </a>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button className="rounded-full bg-blue-500 px-6 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-blue-400">
+                                                    Liên hệ tư vấn
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-md border border-white/15 bg-slate-950/95 text-white">
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-xl font-bold uppercase">
+                                                        Liên hệ với SportM
+                                                    </DialogTitle>
+                                                    <DialogDescription className="text-white/70">
+                                                        Chọn kênh bạn muốn trao đổi để được đội ngũ tư vấn hỗ trợ nhanh nhất.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="mt-4 space-y-3">
+                                                    {contactLinks.map(({ href, label, description, icon: Icon }) => (
+                                                        <a
+                                                            key={href}
+                                                            href={href}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="flex items-start gap-3 rounded-xl border border-white/15 bg-white/5 p-4 transition hover:border-white/40 hover:bg-white/10"
+                                                        >
+                                                            <span className="flex size-10 items-center justify-center rounded-full bg-white/15 text-white">
+                                                                <Icon className="size-4" />
+                                                            </span>
+                                                            <span className="flex-1">
+                                                                <span className="block text-sm font-semibold uppercase tracking-wide">
+                                                                    {label}
+                                                                </span>
+                                                                <span className="block text-xs text-white/70">
+                                                                    {description}
+                                                                </span>
+                                                            </span>
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <Button className="rounded-full bg-white/90 px-6 py-2 text-sm font-semibold uppercase tracking-wide text-blue-950 transition hover:bg-white">

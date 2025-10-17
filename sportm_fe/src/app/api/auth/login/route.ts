@@ -115,11 +115,17 @@ function isBackendOk(x: unknown): x is BackendOk {
     return !!data && typeof data.message === "string" && typeof data.access === "string" && !!data.user && typeof data.user === "object";
 }
 function extractMessage(x: unknown): string | undefined {
-    if (typeof x === "string") return x;
+    if (typeof x === "string" && x.trim()) return x;
     if (x && typeof x === "object") {
         const obj = x as Record<string, unknown>;
-        if (typeof obj.message === "string") return obj.message;
-        if (typeof obj.error === "string") return obj.error;
+        if (typeof obj.message === "string" && obj.message.trim()) return obj.message;
+        if (typeof obj.error === "string" && obj.error.trim()) return obj.error;
+        const data = obj.data;
+        if (typeof data === "string" && data.trim()) return data;
+        if (Array.isArray(data)) {
+            const first = data.find((item) => typeof item === "string" && item.trim());
+            if (typeof first === "string") return first;
+        }
     }
     return undefined;
 }
@@ -141,8 +147,12 @@ export async function POST(req: Request) {
         try { json = JSON.parse(text); } catch { json = { message: text }; }
 
         if (!res.ok) {
-            const msg = extractMessage(json) ?? "Login failed";
-            return NextResponse.json({ error: msg }, { status: res.status || 400 });
+            const msg = extractMessage(json) ?? "Đăng nhập thất bại";
+            const payload =
+                json && typeof json === "object"
+                    ? { ...(json as Record<string, unknown>), error: msg, message: msg }
+                    : { error: msg, message: msg, status: "error" };
+            return NextResponse.json(payload, { status: res.status || 400 });
         }
 
         if (!isBackendOk(json)) {
