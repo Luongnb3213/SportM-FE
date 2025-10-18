@@ -318,8 +318,7 @@ export default function ManageAdsPage() {
             <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <h1 className={cn(bigShoulders.className, "text-2xl md:text-3xl font-bold")}>Quản lý Quảng cáo</h1>
 
-                {!isOwner && (
-                    <Dialog open={openCreate} onOpenChange={(open) => {
+                <Dialog open={openCreate} onOpenChange={(open) => {
                         setOpenCreate(open);
                         if (!open) {
                             setCreating(false);
@@ -471,8 +470,7 @@ export default function ManageAdsPage() {
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
-                    </Dialog>
-                )}
+                </Dialog>
             </div>
 
             <Dialog open={openEdit} onOpenChange={(open) => {
