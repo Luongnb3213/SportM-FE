@@ -105,13 +105,13 @@ export default function Footer() {
                                 <li className="flex gap-2.5">
                                     <Mail className="mt-0.5 size-5 flex-none text-blue-300" />
                                     <a href="mailto:contact@sportm.vn" className="transition hover:text-white">
-                                        contact@sportm.vn
+                                        sportm.team2025@gmail.com
                                     </a>
                                 </li>
                                 <li className="flex gap-2.5">
                                     <Phone className="mt-0.5 size-5 flex-none text-blue-300" />
                                     <a href="tel:+840123456789" className="transition hover:text-white">
-                                        (+84) 0123 456 789
+                                        0989898477
                                     </a>
                                 </li>
                                 <li className="flex gap-2.5">
