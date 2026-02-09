@@ -14,7 +14,7 @@ const SLIDES = [
         tag: "PHẦN MỀM CHUYÊN BIỆT",
         title:
             "Đặt Lịch Trực Tuyến & Quản Lý Sân Pickleball – Cầu Lông – Tennis – Bóng Đá!",
-        cta1: { href: "/login", label: "Bắt đầu ngay" },
+        cta1: { href: "https://d074f1d3-6016-4b47-be8c-e09b390896db-00-2sa4l7jmaycln.sisko.replit.dev/", label: "Bắt đầu ngay", external: true },
         cta2: { href: "/about-us", label: "Liên hệ tư vấn" },
     },
     {
@@ -99,12 +99,23 @@ export default function Hero() {
                                     {/* CTA */}
                                     <div className="mt-6 md:mt-8 flex flex-col md:flex-row gap-3 md:gap-4 ">
                                         {s.cta1 && (
-                                            <Link
-                                                href={s.cta1.href}
-                                                className="inline-block px-6 py-3 bg-[#FFEE00] text-black font-semibold rounded text-center w-full md:w-auto"
-                                            >
-                                                {s.cta1.label}
-                                            </Link>
+                                            s.cta1.external ? (
+                                                <a
+                                                    href={s.cta1.href}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-block px-6 py-3 bg-[#FFEE00] text-black font-semibold rounded text-center w-full md:w-auto"
+                                                >
+                                                    {s.cta1.label}
+                                                </a>
+                                            ) : (
+                                                <Link
+                                                    href={s.cta1.href}
+                                                    className="inline-block px-6 py-3 bg-[#FFEE00] text-black font-semibold rounded text-center w-full md:w-auto"
+                                                >
+                                                    {s.cta1.label}
+                                                </Link>
+                                            )
                                         )}
                                         {s.cta2 && (
                                             <Link
